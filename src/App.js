@@ -82,7 +82,6 @@ function Card({ children, style = {}, onClick }) {
   );
 }
 
-// ─── AUTH ─────────────────────────────────────────────────────────────────────
 function AuthScreen({ onLogin }) {
   const [mode, setMode] = useState("login");
   const [email, setEmail] = useState("");
@@ -134,7 +133,6 @@ function AuthScreen({ onLogin }) {
   );
 }
 
-// ─── VOCAB CARD ───────────────────────────────────────────────────────────────
 function VocabCard({ item }) {
   const [flipped, setFlipped] = useState(false);
   return (
@@ -153,7 +151,6 @@ function VocabCard({ item }) {
   );
 }
 
-// ─── TASK COMPONENTS ──────────────────────────────────────────────────────────
 function MCQTaskWithCapture({ task, onContinue }) {
   const [sel, setSel] = useState(null);
   const [checked, setChecked] = useState(false);
@@ -216,7 +213,6 @@ function TrueFalseTaskWithCapture({ task, onContinue }) {
   );
 }
 
-// ─── STUDENT PANEL ────────────────────────────────────────────────────────────
 function StudentPanel({ user, onLogout }) {
   const [stage, setStage] = useState(0);
   const [preStep, setPreStep] = useState(0);
@@ -228,24 +224,22 @@ function StudentPanel({ user, onLogout }) {
   const [toast, setToast] = useState("");
   const [saving, setSaving] = useState(false);
 
-  // Create attempt at the very start (stage 0) so all tasks link to it
-  useEffect(() => {
-    const createAttempt = async () => {
-      const { data } = await supabase.from("attempts").insert({
-        user_id: user.id, lesson_title: lesson.title, started_at: new Date().toISOString()
-      }).select().single();
-      if (data) setAttemptId(data.id);
-    };
-    createAttempt();
-  }, []);
+  const createAttempt = async () => {
+    const { data } = await supabase.from("attempts").insert({
+      user_id: user.id, lesson_title: lesson.title, started_at: new Date().toISOString()
+    }).select().single();
+    if (data) setAttemptId(data.id);
+  };
+
+  useEffect(() => { createAttempt(); }, []);
 
   const showToast = (msg) => { setToast(msg); setTimeout(() => setToast(""), 2000); };
 
-  const saveTaskResult = async (stage, taskLabel, question, studentAnswer, correctAnswer, isCorrect) => {
+  const saveTaskResult = async (stageLabel, taskLabel, question, studentAnswer, correctAnswer, isCorrect) => {
     if (!attemptId) return;
     await supabase.from("task_results").insert({
       user_id: user.id, attempt_id: attemptId, lesson_title: lesson.title,
-      stage, task_label: taskLabel, question,
+      stage: stageLabel, task_label: taskLabel, question,
       student_answer: studentAnswer, correct_answer: correctAnswer,
       is_correct: isCorrect, answered_at: new Date().toISOString()
     });
@@ -287,12 +281,13 @@ function StudentPanel({ user, onLogout }) {
     setPostAnswers({});
     setPostSubmitted({});
     setAttemptId(null);
-    // Create new attempt
     const { data } = await supabase.from("attempts").insert({
       user_id: user.id, lesson_title: lesson.title, started_at: new Date().toISOString()
     }).select().single();
     if (data) setAttemptId(data.id);
   };
+
+  const allSubmitted = lesson.postReading.every((_, i) => postSubmitted[i]);
 
   return (
     <div style={{ minHeight: "100vh", background: C.bg, color: C.text, fontFamily: "'Segoe UI', sans-serif" }}>
@@ -316,6 +311,7 @@ function StudentPanel({ user, onLogout }) {
 
       <div style={{ maxWidth: 700, margin: "0 auto", padding: "28px 20px" }}>
 
+        {/* PRE-READING */}
         {stage === 0 && (
           <div>
             <h2 style={{ fontSize: 22, fontWeight: 800, marginBottom: 4 }}>{lesson.title}</h2>
@@ -339,6 +335,7 @@ function StudentPanel({ user, onLogout }) {
           </div>
         )}
 
+        {/* WHILE READING */}
         {stage === 1 && (
           <div>
             <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: 24 }}>
@@ -371,6 +368,7 @@ function StudentPanel({ user, onLogout }) {
           </div>
         )}
 
+        {/* POST-READING */}
         {stage === 2 && (
           <div>
             <h3 style={{ color: C.gold, marginBottom: 6, fontSize: 18 }}>✍️ Post-Reading Questions</h3>
@@ -391,6 +389,7 @@ function StudentPanel({ user, onLogout }) {
                 }
               </Card>
             ))}
+
             {allSubmitted && (
               <div style={{ textAlign: "center", padding: 36, background: C.accentSoft, borderRadius: 24, border: `1px solid ${C.accentBorder}` }}>
                 <div style={{ fontSize: 52, marginBottom: 12 }}>🏆</div>
@@ -406,7 +405,6 @@ function StudentPanel({ user, onLogout }) {
   );
 }
 
-// ─── ADMIN PANEL ──────────────────────────────────────────────────────────────
 function AdminPanel({ user, onLogout }) {
   const [students, setStudents] = useState([]);
   const [selected, setSelected] = useState(null);
@@ -423,13 +421,8 @@ function AdminPanel({ user, onLogout }) {
     setSelected(student);
     setAttempts([]);
     setLoadingStudent(true);
-
-    // Load all attempts for this student
     const { data: atts } = await supabase.from("attempts").select("*").eq("user_id", student.id).order("started_at", { ascending: false });
-
     if (!atts || atts.length === 0) { setAttempts([]); setLoadingStudent(false); return; }
-
-    // For each attempt load its task_results AND student_responses
     const enriched = await Promise.all(atts.map(async (att) => {
       const [{ data: tasks }, { data: responses }] = await Promise.all([
         supabase.from("task_results").select("*").eq("attempt_id", att.id).order("answered_at", { ascending: true }),
@@ -437,20 +430,16 @@ function AdminPanel({ user, onLogout }) {
       ]);
       return { ...att, tasks: tasks || [], responses: responses || [] };
     }));
-
     setAttempts(enriched);
     setLoadingStudent(false);
   };
 
   const fmt = (str) => new Date(str).toLocaleString("en-GB", { day: "2-digit", month: "short", year: "numeric", hour: "2-digit", minute: "2-digit" });
-
   const stageColor = (s) => s === "pre" ? C.stage1 : C.accent;
   const stageLabel = (s) => s === "pre" ? "Pre-Reading" : "While Reading";
-
   const scoreOf = (att) => {
     if (!att.tasks.length) return null;
-    const correct = att.tasks.filter(t => t.is_correct).length;
-    return `${correct}/${att.tasks.length}`;
+    return `${att.tasks.filter(t => t.is_correct).length}/${att.tasks.length}`;
   };
 
   return (
@@ -464,7 +453,6 @@ function AdminPanel({ user, onLogout }) {
       </div>
 
       <div style={{ display: "flex", height: "calc(100vh - 65px)" }}>
-
         {/* LEFT: student list */}
         <div style={{ width: 260, background: C.surface, borderRight: `1px solid ${C.accentBorder}`, overflowY: "auto", flexShrink: 0 }}>
           <div style={{ padding: "16px 20px", borderBottom: `1px solid ${C.accentBorder}` }}>
@@ -522,7 +510,7 @@ function AdminPanel({ user, onLogout }) {
 
                   <div style={{ padding: "20px 24px" }}>
 
-                    {/* Pre + While task results */}
+                    {/* Test tasks */}
                     {att.tasks.length > 0 && (
                       <div style={{ marginBottom: 24 }}>
                         <div style={{ fontSize: 12, color: C.textMuted, textTransform: "uppercase", letterSpacing: "0.08em", marginBottom: 14 }}>📊 Test Questions</div>
@@ -556,10 +544,10 @@ function AdminPanel({ user, onLogout }) {
                     )}
 
                     {att.tasks.length === 0 && (
-                      <div style={{ fontSize: 13, color: C.textMuted, marginBottom: 20 }}>No test answers recorded for this attempt.</div>
+                      <div style={{ fontSize: 13, color: C.textMuted, marginBottom: 20 }}>No test answers recorded yet.</div>
                     )}
 
-                    {/* Post-reading open answers */}
+                    {/* Open-ended answers */}
                     {att.responses.length > 0 && (
                       <div>
                         <div style={{ fontSize: 12, color: C.textMuted, textTransform: "uppercase", letterSpacing: "0.08em", marginBottom: 14 }}>✍️ Open-Ended Answers</div>
@@ -586,7 +574,6 @@ function AdminPanel({ user, onLogout }) {
   );
 }
 
-// ─── ROOT ─────────────────────────────────────────────────────────────────────
 export default function App() {
   const [user, setUser] = useState(null);
   const [profile, setProfile] = useState(null);
