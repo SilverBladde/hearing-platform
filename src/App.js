@@ -279,7 +279,20 @@ function StudentPanel({ user, onLogout }) {
     showToast("✅ Answer saved!");
   };
 
-  const allSubmitted = lesson.postReading.every((_, i) => postSubmitted[i]);
+  const restartLesson = async () => {
+    setStage(0);
+    setPreStep(0);
+    setParaIndex(0);
+    setParasDone([]);
+    setPostAnswers({});
+    setPostSubmitted({});
+    setAttemptId(null);
+    // Create new attempt
+    const { data } = await supabase.from("attempts").insert({
+      user_id: user.id, lesson_title: lesson.title, started_at: new Date().toISOString()
+    }).select().single();
+    if (data) setAttemptId(data.id);
+  };
 
   return (
     <div style={{ minHeight: "100vh", background: C.bg, color: C.text, fontFamily: "'Segoe UI', sans-serif" }}>
