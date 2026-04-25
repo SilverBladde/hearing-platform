@@ -8,15 +8,13 @@ const supabase = createClient(
 
 const ADMIN_EMAIL = "kzkenbai@gmail.com";
 
-// ─── COLORS ───────────────────────────────────────────────────────────────────
 const C = {
   bg: "#0f1923", surface: "#162130", card: "#1e2e40",
   accent: "#00c9a7", accentSoft: "#00c9a720", accentBorder: "#00c9a740",
-  gold: "#f5a623", text: "#e8f4f2", textMuted: "#7a9eb0",
-  success: "#4ade80", error: "#f87171",
+  gold: "#f5a623", goldSoft: "#f5a62320", text: "#e8f4f2", textMuted: "#7a9eb0",
+  success: "#4ade80", error: "#f87171", stage1: "#6366f1",
 };
 
-// ─── LESSON DATA ──────────────────────────────────────────────────────────────
 const lesson = {
   title: "The Ocean Ecosystem",
   topic: "Marine Biology",
@@ -45,16 +43,17 @@ const lesson = {
     },
   ],
   postReading: [
-    { question: "Why are coral reefs compared to rainforests?", hint: "Think about biodiversity..." },
-    { question: "What would happen if all phytoplankton disappeared?", hint: "Think about oxygen and the food web..." },
+    { id: "q1", question: "Why are coral reefs compared to rainforests?", hint: "Think about biodiversity and importance to the ecosystem..." },
+    { id: "q2", question: "What would happen if all phytoplankton disappeared from the ocean?", hint: "Think about oxygen and the food web..." },
+    { id: "q3", question: "Name two ways the ocean is important to life on Earth.", hint: "Think about oxygen, food, climate..." },
   ]
 };
 
-// ─── HELPERS ──────────────────────────────────────────────────────────────────
 function Btn({ children, onClick, color = C.accent, disabled = false, style = {} }) {
   return (
     <button onClick={onClick} disabled={disabled} style={{
-      background: disabled ? C.card : color, color: disabled ? C.textMuted : (color === C.accent || color === C.gold) ? "#0f1923" : C.text,
+      background: disabled ? C.card : color,
+      color: disabled ? C.textMuted : "#0f1923",
       border: "none", borderRadius: 12, padding: "12px 24px",
       fontFamily: "'Segoe UI', sans-serif", fontWeight: 700, fontSize: 14,
       cursor: disabled ? "default" : "pointer", transition: "all 0.2s ease", ...style
@@ -76,18 +75,17 @@ function Input({ label, type = "text", value, onChange, placeholder }) {
   );
 }
 
-function Card({ children, style = {} }) {
+function Card({ children, style = {}, onClick }) {
   return (
-    <div style={{
+    <div onClick={onClick} style={{
       background: C.card, borderRadius: 20, padding: 24,
       border: `1px solid ${C.accentBorder}`, marginBottom: 20, ...style
     }}>{children}</div>
   );
 }
 
-// ─── AUTH SCREEN ──────────────────────────────────────────────────────────────
 function AuthScreen({ onLogin }) {
-  const [mode, setMode] = useState("login"); // login | register
+  const [mode, setMode] = useState("login");
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [name, setName] = useState("");
@@ -107,23 +105,25 @@ function AuthScreen({ onLogin }) {
     setLoading(true); setMsg("");
     const { data, error } = await supabase.auth.signUp({ email, password, options: { data: { full_name: name } } });
     if (error) { setMsg("❌ " + error.message); setLoading(false); return; }
-    // save to profiles
     if (data.user) {
-      await supabase.from("profiles").upsert({ id: data.user.id, full_name: name, email, role: email === ADMIN_EMAIL ? "admin" : "student" });
+      await supabase.from("profiles").upsert({
+        id: data.user.id, full_name: name, email,
+        role: email === ADMIN_EMAIL ? "admin" : "student"
+      });
     }
-    setMsg("✅ Registered! Check your email to confirm, then log in.");
+    setMsg("✅ Registered! Now log in.");
+    setMode("login");
     setLoading(false);
   };
 
   return (
     <div style={{ minHeight: "100vh", background: C.bg, display: "flex", alignItems: "center", justifyContent: "center", padding: 20 }}>
-      <div style={{ width: "100%", maxWidth: 400 }}>
+      <div style={{ width: "100%", maxWidth: 420 }}>
         <div style={{ textAlign: "center", marginBottom: 32 }}>
-          <div style={{ fontSize: 48, marginBottom: 12 }}>🎓</div>
+          <div style={{ fontSize: 52, marginBottom: 12 }}>🎓</div>
           <h1 style={{ fontSize: 26, fontWeight: 800, color: C.text, fontFamily: "'Segoe UI', sans-serif", marginBottom: 6 }}>Hearing Platform</h1>
           <p style={{ color: C.textMuted, fontSize: 14 }}>Educational platform for hearing-impaired students</p>
         </div>
-
         <Card>
           <div style={{ display: "flex", marginBottom: 24, background: C.surface, borderRadius: 10, padding: 4 }}>
             {["login", "register"].map(m => (
@@ -135,27 +135,21 @@ function AuthScreen({ onLogin }) {
               }}>{m === "login" ? "Log In" : "Register"}</button>
             ))}
           </div>
-
           {mode === "register" && <Input label="Full Name" value={name} onChange={setName} placeholder="Your name" />}
           <Input label="Email" type="email" value={email} onChange={setEmail} placeholder="you@email.com" />
           <Input label="Password" type="password" value={password} onChange={setPassword} placeholder="••••••••" />
-
-          {msg && <div style={{ marginBottom: 14, padding: "10px 14px", borderRadius: 10, background: msg.startsWith("✅") ? C.success + "20" : C.error + "20", color: msg.startsWith("✅") ? C.success : C.error, fontSize: 13 }}>{msg}</div>}
-
+          {msg && (
+            <div style={{ marginBottom: 14, padding: "10px 14px", borderRadius: 10, background: msg.startsWith("✅") ? C.success + "20" : C.error + "20", color: msg.startsWith("✅") ? C.success : C.error, fontSize: 13 }}>{msg}</div>
+          )}
           <Btn onClick={mode === "login" ? handleLogin : handleRegister} disabled={loading} style={{ width: "100%" }}>
             {loading ? "Please wait..." : mode === "login" ? "Log In →" : "Create Account →"}
           </Btn>
-
-          <div style={{ marginTop: 16, padding: "12px", background: C.accentSoft, borderRadius: 10, fontSize: 12, color: C.textMuted }}>
-            <strong style={{ color: C.accent }}>Admin:</strong> use email <code style={{ color: C.gold }}>{ADMIN_EMAIL}</code> to get admin access
-          </div>
         </Card>
       </div>
     </div>
   );
 }
 
-// ─── VOCAB CARD ───────────────────────────────────────────────────────────────
 function VocabCard({ item }) {
   const [flipped, setFlipped] = useState(false);
   return (
@@ -174,7 +168,6 @@ function VocabCard({ item }) {
   );
 }
 
-// ─── TASK COMPONENTS ──────────────────────────────────────────────────────────
 function MCQTask({ task, onCorrect }) {
   const [sel, setSel] = useState(null);
   const [done, setDone] = useState(false);
@@ -184,12 +177,22 @@ function MCQTask({ task, onCorrect }) {
       <div style={{ fontWeight: 600, color: C.text, marginBottom: 14, fontSize: 15 }}>{task.question}</div>
       {task.options.map((opt, i) => {
         let bg = C.surface, border = C.accentBorder, color = C.text;
-        if (done) { if (i === task.correct) { bg = C.success + "20"; border = C.success; color = C.success; } else if (i === sel) { bg = C.error + "20"; border = C.error; color = C.error; } }
-        else if (i === sel) { bg = C.accentSoft; border = C.accent; color = C.accent; }
-        return <button key={i} onClick={() => !done && setSel(i)} style={{ display: "block", width: "100%", textAlign: "left", padding: "11px 16px", marginBottom: 8, background: bg, border: `1.5px solid ${border}`, borderRadius: 10, color, cursor: done ? "default" : "pointer", fontSize: 14, transition: "all 0.2s" }}>{String.fromCharCode(65 + i)}. {opt}</button>;
+        if (done) {
+          if (i === task.correct) { bg = C.success + "20"; border = C.success; color = C.success; }
+          else if (i === sel) { bg = C.error + "20"; border = C.error; color = C.error; }
+        } else if (i === sel) { bg = C.accentSoft; border = C.accent; color = C.accent; }
+        return (
+          <button key={i} onClick={() => !done && setSel(i)} style={{
+            display: "block", width: "100%", textAlign: "left", padding: "11px 16px",
+            marginBottom: 8, background: bg, border: `1.5px solid ${border}`,
+            borderRadius: 10, color, cursor: done ? "default" : "pointer", fontSize: 14, transition: "all 0.2s"
+          }}>{String.fromCharCode(65 + i)}. {opt}</button>
+        );
       })}
       {!done && <Btn onClick={submit} disabled={sel === null}>Check →</Btn>}
-      {done && <div style={{ marginTop: 10, color: sel === task.correct ? C.success : C.error, fontSize: 13 }}>{sel === task.correct ? "✓ Correct! Well done." : `✗ The correct answer is: ${task.options[task.correct]}`}</div>}
+      {done && <div style={{ marginTop: 10, color: sel === task.correct ? C.success : C.error, fontSize: 13 }}>
+        {sel === task.correct ? "✓ Correct! Well done." : `✗ Correct answer: ${task.options[task.correct]}`}
+      </div>}
     </div>
   );
 }
@@ -207,69 +210,83 @@ function TrueFalseTask({ task, onCorrect }) {
       <div style={{ display: "flex", gap: 12 }}>
         {[true, false].map(val => {
           let bg = C.surface, border = C.accentBorder, color = C.textMuted;
-          if (sel !== null) { if (val === task.correct) { bg = C.success + "20"; border = C.success; color = C.success; } else if (val === sel) { bg = C.error + "20"; border = C.error; color = C.error; } }
-          return <button key={String(val)} onClick={() => handle(val)} style={{ flex: 1, padding: "14px", background: bg, border: `1.5px solid ${border}`, borderRadius: 12, color, fontWeight: 700, fontSize: 15, cursor: sel !== null ? "default" : "pointer", transition: "all 0.2s" }}>{val ? "TRUE ✓" : "FALSE ✗"}</button>;
+          if (sel !== null) {
+            if (val === task.correct) { bg = C.success + "20"; border = C.success; color = C.success; }
+            else if (val === sel) { bg = C.error + "20"; border = C.error; color = C.error; }
+          }
+          return (
+            <button key={String(val)} onClick={() => handle(val)} style={{
+              flex: 1, padding: "14px", background: bg, border: `1.5px solid ${border}`,
+              borderRadius: 12, color, fontWeight: 700, fontSize: 15,
+              cursor: sel !== null ? "default" : "pointer", transition: "all 0.2s"
+            }}>{val ? "TRUE ✓" : "FALSE ✗"}</button>
+          );
         })}
       </div>
-      {sel !== null && <div style={{ marginTop: 10, color: sel === task.correct ? C.success : C.error, fontSize: 13 }}>{sel === task.correct ? "✓ Correct!" : `✗ The answer is ${task.correct ? "TRUE" : "FALSE"}`}</div>}
+      {sel !== null && <div style={{ marginTop: 10, color: sel === task.correct ? C.success : C.error, fontSize: 13 }}>
+        {sel === task.correct ? "✓ Correct!" : `✗ The answer is ${task.correct ? "TRUE" : "FALSE"}`}
+      </div>}
     </div>
   );
 }
 
-// ─── STUDENT PANEL ────────────────────────────────────────────────────────────
 function StudentPanel({ user, onLogout }) {
-  const [stage, setStage] = useState(0); // 0=pre, 1=while, 2=post
-  const [preStep, setPreStep] = useState(0); // 0=vocab, 1=question
+  const [stage, setStage] = useState(0);
+  const [preStep, setPreStep] = useState(0);
   const [paraIndex, setParaIndex] = useState(0);
   const [parasDone, setParasDone] = useState([]);
   const [postAnswers, setPostAnswers] = useState({});
   const [postSubmitted, setPostSubmitted] = useState({});
-  const [postFeedback, setPostFeedback] = useState({});
-  const [loading, setLoading] = useState({});
+  const [attemptId, setAttemptId] = useState(null);
   const [toast, setToast] = useState("");
+  const [saving, setSaving] = useState(false);
+
+  useEffect(() => {
+    if (stage === 2 && !attemptId) {
+      supabase.from("attempts").insert({
+        user_id: user.id,
+        lesson_title: lesson.title,
+        started_at: new Date().toISOString()
+      }).select().single().then(({ data }) => {
+        if (data) setAttemptId(data.id);
+      });
+    }
+  }, [stage]);
 
   const showToast = (msg) => { setToast(msg); setTimeout(() => setToast(""), 2500); };
 
   const handleParaDone = (i) => {
     if (parasDone.includes(i)) return;
-    const next = [...parasDone, i];
-    setParasDone(next);
+    setParasDone(prev => [...prev, i]);
     showToast("🎉 Correct! Great job!");
     setTimeout(() => {
       if (i < lesson.paragraphs.length - 1) setParaIndex(i + 1);
-      else { setStage(2); }
+      else setStage(2);
     }, 1500);
   };
 
-  const submitPost = async (i) => {
-    if (!postAnswers[i]?.trim()) return;
-    setLoading(prev => ({ ...prev, [i]: true }));
-    try {
-      const res = await fetch("https://api.anthropic.com/v1/messages", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          model: "claude-sonnet-4-20250514", max_tokens: 1000,
-          messages: [{ role: "user", content: `You are a kind teacher. Question: "${lesson.postReading[i].question}". Student answered: "${postAnswers[i]}". Give 2-3 sentences of warm, constructive feedback.` }]
-        })
-      });
-      const data = await res.json();
-      const text = data.content?.map(b => b.text || "").join("") || "Great effort!";
-      setPostFeedback(prev => ({ ...prev, [i]: text }));
-      // save to supabase
-      await supabase.from("student_responses").insert({ user_id: user.id, question: lesson.postReading[i].question, answer: postAnswers[i], feedback: text });
-    } catch {
-      setPostFeedback(prev => ({ ...prev, [i]: "Great effort! Keep exploring the topic." }));
-    }
+  const submitAnswer = async (i) => {
+    if (!postAnswers[i]?.trim() || !attemptId) return;
+    setSaving(true);
+    await supabase.from("student_responses").insert({
+      user_id: user.id,
+      attempt_id: attemptId,
+      question_id: lesson.postReading[i].id,
+      question: lesson.postReading[i].question,
+      answer: postAnswers[i],
+    });
     setPostSubmitted(prev => ({ ...prev, [i]: true }));
-    setLoading(prev => ({ ...prev, [i]: false }));
+    setSaving(false);
+    showToast("✅ Answer saved!");
   };
+
+  const allSubmitted = lesson.postReading.every((_, i) => postSubmitted[i]);
 
   return (
     <div style={{ minHeight: "100vh", background: C.bg, color: C.text, fontFamily: "'Segoe UI', sans-serif" }}>
-      {toast && <div style={{ position: "fixed", top: 20, left: "50%", transform: "translateX(-50%)", background: C.accent, color: "#0f1923", padding: "12px 28px", borderRadius: 50, fontWeight: 800, zIndex: 1000, fontSize: 15 }}>{toast}</div>}
-
-      {/* Header */}
+      {toast && (
+        <div style={{ position: "fixed", top: 20, left: "50%", transform: "translateX(-50%)", background: C.accent, color: "#0f1923", padding: "12px 28px", borderRadius: 50, fontWeight: 800, zIndex: 1000, fontSize: 15, whiteSpace: "nowrap" }}>{toast}</div>
+      )}
       <div style={{ background: C.surface, padding: "16px 24px", display: "flex", alignItems: "center", justifyContent: "space-between", borderBottom: `1px solid ${C.accentBorder}` }}>
         <div>
           <div style={{ fontWeight: 800, fontSize: 18 }}>🎓 Hearing Platform</div>
@@ -277,35 +294,31 @@ function StudentPanel({ user, onLogout }) {
         </div>
         <button onClick={onLogout} style={{ background: "none", border: `1px solid ${C.accentBorder}`, borderRadius: 8, padding: "8px 16px", color: C.textMuted, cursor: "pointer", fontSize: 13 }}>Log out</button>
       </div>
-
-      {/* Progress */}
       <div style={{ background: C.surface, padding: "12px 24px", display: "flex", gap: 8, borderBottom: `1px solid ${C.accentBorder}` }}>
-        {["📖 Pre-Reading", "🔍 While Reading", "✍️ Post-Reading"].map((s, i) => (
-          <div key={i} style={{ flex: 1, textAlign: "center", padding: "8px", borderRadius: 10, background: stage === i ? C.accentSoft : "transparent", border: `1px solid ${stage === i ? C.accent : "transparent"}`, fontSize: 13, color: stage === i ? C.accent : stage > i ? C.success : C.textMuted, fontWeight: stage === i ? 700 : 400 }}>{s}</div>
+        {[["📖", "Pre-Reading", C.stage1], ["🔍", "While Reading", C.accent], ["✍️", "Post-Reading", C.gold]].map(([icon, label, color], i) => (
+          <div key={i} style={{ flex: 1, textAlign: "center", padding: "8px", borderRadius: 10, background: stage === i ? color + "20" : "transparent", border: `1px solid ${stage === i ? color : "transparent"}`, fontSize: 13, color: stage === i ? color : stage > i ? C.success : C.textMuted, fontWeight: stage === i ? 700 : 400 }}>
+            {icon} {label}
+          </div>
         ))}
       </div>
-
       <div style={{ maxWidth: 700, margin: "0 auto", padding: "28px 20px" }}>
-
-        {/* ── PRE-READING ── */}
         {stage === 0 && (
           <div>
-            <h2 style={{ fontSize: 22, fontWeight: 800, marginBottom: 6 }}>{lesson.title}</h2>
-            <p style={{ color: C.textMuted, marginBottom: 24, fontSize: 14 }}>{lesson.topic}</p>
-
+            <h2 style={{ fontSize: 22, fontWeight: 800, marginBottom: 4 }}>{lesson.title}</h2>
+            <p style={{ color: C.textMuted, marginBottom: 28, fontSize: 14 }}>{lesson.topic}</p>
             {preStep === 0 && (
               <>
-                <h3 style={{ marginBottom: 16, color: C.accent }}>📚 Key Vocabulary — Tap each card!</h3>
+                <h3 style={{ marginBottom: 8, color: C.stage1 }}>📚 Key Vocabulary</h3>
+                <p style={{ color: C.textMuted, fontSize: 13, marginBottom: 18 }}>Tap each card to see the definition</p>
                 <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fill, minmax(130px, 1fr))", gap: 12, marginBottom: 28 }}>
                   {lesson.vocab.map(v => <VocabCard key={v.word} item={v} />)}
                 </div>
-                <Btn onClick={() => setPreStep(1)} style={{ width: "100%" }}>I know these words — Continue →</Btn>
+                <Btn onClick={() => setPreStep(1)} style={{ width: "100%" }}>I know these words →</Btn>
               </>
             )}
-
             {preStep === 1 && (
               <Card>
-                <h3 style={{ marginBottom: 16, color: C.accent }}>🧠 Quick Check — What do you already know?</h3>
+                <h3 style={{ marginBottom: 16, color: C.stage1 }}>🧠 Quick Knowledge Check</h3>
                 <MCQTask
                   task={{ question: "Which ocean habitat has the most biodiversity?", options: ["Deep ocean trenches", "Coral reefs", "Open ocean surface", "Polar ice regions"], correct: 1 }}
                   onCorrect={() => { showToast("🌟 Let's start reading!"); setTimeout(() => setStage(1), 1500); }}
@@ -315,20 +328,18 @@ function StudentPanel({ user, onLogout }) {
             )}
           </div>
         )}
-
-        {/* ── WHILE READING ── */}
         {stage === 1 && (
           <div>
             <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: 24 }}>
-              <h3 style={{ color: C.accent }}>🔍 While Reading</h3>
-              <div style={{ fontSize: 13, color: C.textMuted }}>{parasDone.length}/{lesson.paragraphs.length} done</div>
+              <h3 style={{ color: C.accent, fontSize: 18 }}>🔍 While Reading</h3>
+              <div style={{ fontSize: 13, color: C.textMuted }}>{parasDone.length}/{lesson.paragraphs.length} completed</div>
             </div>
             {lesson.paragraphs.slice(0, paraIndex + 1).map((para, i) => (
               <div key={i}>
                 <Card>
-                  <div style={{ display: "flex", gap: 14 }}>
-                    <div style={{ fontSize: 40 }}>{para.emoji}</div>
-                    <p style={{ fontSize: 15, lineHeight: 1.8, color: C.text }}>{para.text}</p>
+                  <div style={{ display: "flex", gap: 14, alignItems: "flex-start" }}>
+                    <div style={{ fontSize: 40, flexShrink: 0 }}>{para.emoji}</div>
+                    <p style={{ fontSize: 15, lineHeight: 1.8, color: C.text, margin: 0 }}>{para.text}</p>
                   </div>
                 </Card>
                 {i === paraIndex && (
@@ -338,33 +349,41 @@ function StudentPanel({ user, onLogout }) {
                     {para.task.type === "truefalse" && <TrueFalseTask task={para.task} onCorrect={() => handleParaDone(i)} />}
                   </Card>
                 )}
-                {parasDone.includes(i) && i < paraIndex && <div style={{ color: C.success, fontSize: 12, marginBottom: 16 }}>✓ Completed</div>}
+                {parasDone.includes(i) && i < paraIndex && (
+                  <div style={{ color: C.success, fontSize: 12, marginBottom: 16, marginTop: -10 }}>✓ Completed</div>
+                )}
               </div>
             ))}
           </div>
         )}
-
-        {/* ── POST READING ── */}
         {stage === 2 && (
           <div>
-            <h3 style={{ color: C.gold, marginBottom: 8 }}>✍️ Post-Reading Questions</h3>
-            <p style={{ color: C.textMuted, fontSize: 14, marginBottom: 24 }}>Write your answers — you'll get AI feedback! 🤖</p>
+            <h3 style={{ color: C.gold, marginBottom: 6, fontSize: 18 }}>✍️ Post-Reading Questions</h3>
+            <p style={{ color: C.textMuted, fontSize: 14, marginBottom: 24 }}>Write your answers. Your teacher will review them.</p>
             {lesson.postReading.map((item, i) => (
               <Card key={i}>
-                <div style={{ fontWeight: 700, fontSize: 15, marginBottom: 14 }}>Q{i + 1}. {item.question}</div>
-                <div style={{ fontSize: 12, color: C.gold, marginBottom: 12 }}>💡 Hint: {item.hint}</div>
+                <div style={{ display: "flex", gap: 12, alignItems: "flex-start", marginBottom: 14 }}>
+                  <div style={{ width: 32, height: 32, borderRadius: "50%", background: C.goldSoft, border: `1.5px solid ${C.gold}`, display: "flex", alignItems: "center", justifyContent: "center", color: C.gold, fontWeight: 800, fontSize: 14, flexShrink: 0 }}>{i + 1}</div>
+                  <div style={{ fontWeight: 600, fontSize: 15, color: C.text, lineHeight: 1.5 }}>{item.question}</div>
+                </div>
+                <div style={{ fontSize: 12, color: C.gold, marginBottom: 14, paddingLeft: 44 }}>💡 {item.hint}</div>
                 <textarea value={postAnswers[i] || ""} onChange={e => setPostAnswers(p => ({ ...p, [i]: e.target.value }))} disabled={postSubmitted[i]}
                   placeholder="Write your answer here..."
-                  style={{ width: "100%", minHeight: 90, background: C.surface, border: `1.5px solid ${postSubmitted[i] ? C.success + "50" : C.accentBorder}`, borderRadius: 10, padding: 12, color: C.text, fontSize: 14, resize: "vertical", outline: "none", boxSizing: "border-box", fontFamily: "'Segoe UI', sans-serif" }} />
-                {!postSubmitted[i] && <Btn onClick={() => submitPost(i)} color={C.gold} disabled={loading[i] || !postAnswers[i]?.trim()} style={{ marginTop: 12 }}>{loading[i] ? "Getting feedback..." : "Submit →"}</Btn>}
-                {postFeedback[i] && <div style={{ marginTop: 14, padding: "14px", borderRadius: 12, background: C.success + "12", border: `1px solid ${C.success}30`, fontSize: 14, lineHeight: 1.6 }}><strong style={{ color: C.success }}>✨ Feedback:</strong><br />{postFeedback[i]}</div>}
+                  style={{ width: "100%", minHeight: 100, background: C.surface, border: `1.5px solid ${postSubmitted[i] ? C.success + "60" : C.accentBorder}`, borderRadius: 10, padding: 14, color: C.text, fontFamily: "'Segoe UI', sans-serif", fontSize: 14, resize: "vertical", outline: "none", boxSizing: "border-box", lineHeight: 1.6 }} />
+                {!postSubmitted[i] ? (
+                  <Btn onClick={() => submitAnswer(i)} color={C.gold} disabled={saving || !postAnswers[i]?.trim()} style={{ marginTop: 12 }}>
+                    {saving ? "Saving..." : "Save Answer →"}
+                  </Btn>
+                ) : (
+                  <div style={{ marginTop: 12, color: C.success, fontSize: 13 }}>✅ Saved — your teacher will review it</div>
+                )}
               </Card>
             ))}
-            {Object.keys(postSubmitted).length === lesson.postReading.length && (
-              <div style={{ textAlign: "center", padding: 32, background: C.accentSoft, borderRadius: 20, border: `1px solid ${C.accentBorder}` }}>
-                <div style={{ fontSize: 48, marginBottom: 12 }}>🏆</div>
-                <div style={{ fontSize: 22, fontWeight: 800, marginBottom: 8 }}>Lesson Complete!</div>
-                <div style={{ color: C.textMuted, fontSize: 14 }}>Excellent work! Your responses have been saved.</div>
+            {allSubmitted && (
+              <div style={{ textAlign: "center", padding: 36, background: C.accentSoft, borderRadius: 24, border: `1px solid ${C.accentBorder}` }}>
+                <div style={{ fontSize: 52, marginBottom: 12 }}>🏆</div>
+                <div style={{ fontSize: 24, fontWeight: 800, marginBottom: 8 }}>Lesson Complete!</div>
+                <div style={{ color: C.textMuted, fontSize: 14 }}>All answers saved. Great work!</div>
               </div>
             )}
           </div>
@@ -374,27 +393,40 @@ function StudentPanel({ user, onLogout }) {
   );
 }
 
-// ─── ADMIN PANEL ──────────────────────────────────────────────────────────────
 function AdminPanel({ user, onLogout }) {
   const [tab, setTab] = useState("students");
   const [students, setStudents] = useState([]);
+  const [selectedStudent, setSelectedStudent] = useState(null);
+  const [attempts, setAttempts] = useState([]);
+  const [selectedAttempt, setSelectedAttempt] = useState(null);
   const [responses, setResponses] = useState([]);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    const load = async () => {
-      const { data: profiles } = await supabase.from("profiles").select("*").eq("role", "student");
-      const { data: resp } = await supabase.from("student_responses").select("*").order("created_at", { ascending: false });
-      setStudents(profiles || []);
-      setResponses(resp || []);
-      setLoading(false);
-    };
-    load();
+    supabase.from("profiles").select("*").eq("role", "student").order("created_at", { ascending: false })
+      .then(({ data }) => { setStudents(data || []); setLoading(false); });
   }, []);
+
+  const loadStudentAttempts = async (student) => {
+    setSelectedStudent(student);
+    setSelectedAttempt(null);
+    setResponses([]);
+    const { data } = await supabase.from("attempts").select("*").eq("user_id", student.id).order("started_at", { ascending: false });
+    setAttempts(data || []);
+    setTab("attempts");
+  };
+
+  const loadAttemptResponses = async (attempt) => {
+    setSelectedAttempt(attempt);
+    const { data } = await supabase.from("student_responses").select("*").eq("attempt_id", attempt.id).order("created_at", { ascending: true });
+    setResponses(data || []);
+    setTab("responses");
+  };
+
+  const fmt = (str) => new Date(str).toLocaleString("en-GB", { day: "2-digit", month: "short", year: "numeric", hour: "2-digit", minute: "2-digit" });
 
   return (
     <div style={{ minHeight: "100vh", background: C.bg, color: C.text, fontFamily: "'Segoe UI', sans-serif" }}>
-      {/* Header */}
       <div style={{ background: C.surface, padding: "16px 24px", display: "flex", alignItems: "center", justifyContent: "space-between", borderBottom: `1px solid ${C.accentBorder}` }}>
         <div>
           <div style={{ fontWeight: 800, fontSize: 18 }}>⚙️ Admin Panel</div>
@@ -403,45 +435,89 @@ function AdminPanel({ user, onLogout }) {
         <button onClick={onLogout} style={{ background: "none", border: `1px solid ${C.accentBorder}`, borderRadius: 8, padding: "8px 16px", color: C.textMuted, cursor: "pointer", fontSize: 13 }}>Log out</button>
       </div>
 
-      {/* Tabs */}
-      <div style={{ background: C.surface, padding: "0 24px", display: "flex", gap: 4, borderBottom: `1px solid ${C.accentBorder}` }}>
-        {[["students", "👥 Students"], ["responses", "📝 Responses"]].map(([key, label]) => (
-          <button key={key} onClick={() => setTab(key)} style={{ padding: "14px 20px", background: "none", border: "none", borderBottom: `3px solid ${tab === key ? C.accent : "transparent"}`, color: tab === key ? C.accent : C.textMuted, cursor: "pointer", fontWeight: tab === key ? 700 : 400, fontSize: 14, transition: "all 0.2s" }}>{label}</button>
-        ))}
+      {/* Breadcrumb */}
+      <div style={{ background: C.surface, padding: "0 24px", display: "flex", alignItems: "center", gap: 4, borderBottom: `1px solid ${C.accentBorder}`, flexWrap: "wrap" }}>
+        <button onClick={() => { setTab("students"); setSelectedStudent(null); setSelectedAttempt(null); }} style={{ padding: "14px 16px", background: "none", border: "none", borderBottom: `3px solid ${tab === "students" ? C.accent : "transparent"}`, color: tab === "students" ? C.accent : C.textMuted, cursor: "pointer", fontWeight: tab === "students" ? 700 : 400, fontSize: 14 }}>
+          👥 All Students ({students.length})
+        </button>
+        {selectedStudent && <>
+          <span style={{ color: C.textMuted, fontSize: 18 }}>›</span>
+          <button onClick={() => { setTab("attempts"); setSelectedAttempt(null); }} style={{ padding: "14px 16px", background: "none", border: "none", borderBottom: `3px solid ${tab === "attempts" ? C.accent : "transparent"}`, color: tab === "attempts" ? C.accent : C.textMuted, cursor: "pointer", fontWeight: tab === "attempts" ? 700 : 400, fontSize: 14 }}>
+            📋 {selectedStudent.full_name}
+          </button>
+        </>}
+        {selectedAttempt && <>
+          <span style={{ color: C.textMuted, fontSize: 18 }}>›</span>
+          <span style={{ padding: "14px 16px", borderBottom: `3px solid ${C.gold}`, color: C.gold, fontWeight: 700, fontSize: 14 }}>
+            📝 {fmt(selectedAttempt.started_at)}
+          </span>
+        </>}
       </div>
 
       <div style={{ maxWidth: 900, margin: "0 auto", padding: "28px 20px" }}>
-        {loading && <div style={{ color: C.textMuted, textAlign: "center", padding: 40 }}>Loading data...</div>}
 
-        {!loading && tab === "students" && (
+        {tab === "students" && (
           <div>
-            <h3 style={{ marginBottom: 20, color: C.accent }}>Registered Students ({students.length})</h3>
-            {students.length === 0 && <div style={{ color: C.textMuted, padding: 20 }}>No students registered yet. Share the platform link with your students!</div>}
-            {students.map((s, i) => (
-              <Card key={i} style={{ display: "flex", alignItems: "center", gap: 16, padding: "16px 20px" }}>
-                <div style={{ width: 44, height: 44, borderRadius: "50%", background: C.accentSoft, display: "flex", alignItems: "center", justifyContent: "center", fontSize: 20 }}>👤</div>
-                <div>
-                  <div style={{ fontWeight: 700 }}>{s.full_name}</div>
-                  <div style={{ fontSize: 13, color: C.textMuted }}>{s.email}</div>
-                </div>
-                <div style={{ marginLeft: "auto", fontSize: 12, color: C.textMuted }}>
-                  {new Date(s.created_at).toLocaleDateString()}
+            <h3 style={{ marginBottom: 6, color: C.accent }}>All Students</h3>
+            <p style={{ color: C.textMuted, fontSize: 13, marginBottom: 20 }}>Click a student to see their lesson attempts</p>
+            {loading && <div style={{ color: C.textMuted, padding: 20 }}>Loading...</div>}
+            {!loading && students.length === 0 && <Card><div style={{ color: C.textMuted, textAlign: "center", padding: 20 }}>No students yet. Share the link: <strong style={{ color: C.accent }}>hearing-platform.vercel.app</strong></div></Card>}
+            {students.map(s => (
+              <Card key={s.id} style={{ cursor: "pointer" }} onClick={() => loadStudentAttempts(s)}>
+                <div style={{ display: "flex", alignItems: "center", gap: 16 }}>
+                  <div style={{ width: 48, height: 48, borderRadius: "50%", background: C.accentSoft, border: `2px solid ${C.accentBorder}`, display: "flex", alignItems: "center", justifyContent: "center", fontSize: 22, flexShrink: 0 }}>👤</div>
+                  <div style={{ flex: 1 }}>
+                    <div style={{ fontWeight: 700, fontSize: 16 }}>{s.full_name}</div>
+                    <div style={{ fontSize: 13, color: C.textMuted }}>{s.email}</div>
+                  </div>
+                  <div style={{ textAlign: "right" }}>
+                    <div style={{ fontSize: 12, color: C.textMuted }}>Joined {fmt(s.created_at)}</div>
+                    <div style={{ fontSize: 13, color: C.accent, marginTop: 4, fontWeight: 600 }}>View attempts →</div>
+                  </div>
                 </div>
               </Card>
             ))}
           </div>
         )}
 
-        {!loading && tab === "responses" && (
+        {tab === "attempts" && selectedStudent && (
           <div>
-            <h3 style={{ marginBottom: 20, color: C.accent }}>Student Responses ({responses.length})</h3>
-            {responses.length === 0 && <div style={{ color: C.textMuted, padding: 20 }}>No responses yet.</div>}
+            <h3 style={{ marginBottom: 6, color: C.accent }}>{selectedStudent.full_name} — Attempts</h3>
+            <p style={{ color: C.textMuted, fontSize: 13, marginBottom: 20 }}>Each row = one session. Click to read their answers.</p>
+            {attempts.length === 0 && <Card><div style={{ color: C.textMuted, textAlign: "center", padding: 20 }}>This student hasn't reached post-reading yet.</div></Card>}
+            {attempts.map((a, i) => (
+              <Card key={a.id} style={{ cursor: "pointer" }} onClick={() => loadAttemptResponses(a)}>
+                <div style={{ display: "flex", alignItems: "center", gap: 16 }}>
+                  <div style={{ width: 48, height: 48, borderRadius: 14, background: C.goldSoft, border: `2px solid ${C.gold}40`, display: "flex", alignItems: "center", justifyContent: "center", fontSize: 22, flexShrink: 0 }}>📋</div>
+                  <div style={{ flex: 1 }}>
+                    <div style={{ fontWeight: 700, fontSize: 15 }}>Attempt #{attempts.length - i}</div>
+                    <div style={{ fontSize: 13, color: C.textMuted }}>{lesson.title}</div>
+                  </div>
+                  <div style={{ textAlign: "right" }}>
+                    <div style={{ fontSize: 12, color: C.textMuted }}>{fmt(a.started_at)}</div>
+                    <div style={{ fontSize: 13, color: C.gold, marginTop: 4, fontWeight: 600 }}>Read answers →</div>
+                  </div>
+                </div>
+              </Card>
+            ))}
+          </div>
+        )}
+
+        {tab === "responses" && selectedAttempt && (
+          <div>
+            <h3 style={{ marginBottom: 4, color: C.accent }}>{selectedStudent?.full_name} — Answers</h3>
+            <p style={{ color: C.textMuted, fontSize: 13, marginBottom: 24 }}>Session on {fmt(selectedAttempt.started_at)}</p>
+            {responses.length === 0 && <Card><div style={{ color: C.textMuted, textAlign: "center", padding: 20 }}>No answers saved yet for this attempt.</div></Card>}
             {responses.map((r, i) => (
-              <Card key={i}>
-                <div style={{ fontSize: 12, color: C.textMuted, marginBottom: 8 }}>{new Date(r.created_at).toLocaleString()}</div>
-                <div style={{ fontWeight: 600, marginBottom: 8, color: C.gold }}>Q: {r.question}</div>
-                <div style={{ fontSize: 14, marginBottom: 10, padding: "10px", background: C.surface, borderRadius: 8 }}>{r.answer}</div>
-                {r.feedback && <div style={{ fontSize: 13, color: C.accent, borderLeft: `3px solid ${C.accent}`, paddingLeft: 12 }}>AI Feedback: {r.feedback}</div>}
+              <Card key={r.id}>
+                <div style={{ display: "flex", gap: 12, alignItems: "flex-start", marginBottom: 12 }}>
+                  <div style={{ width: 30, height: 30, borderRadius: "50%", background: C.goldSoft, border: `1.5px solid ${C.gold}`, display: "flex", alignItems: "center", justifyContent: "center", color: C.gold, fontWeight: 800, fontSize: 13, flexShrink: 0 }}>{i + 1}</div>
+                  <div style={{ fontWeight: 600, fontSize: 15, color: C.text, lineHeight: 1.5 }}>{r.question}</div>
+                </div>
+                <div style={{ background: C.surface, borderRadius: 12, padding: "14px 16px", fontSize: 14, lineHeight: 1.7, color: C.text, borderLeft: `3px solid ${C.accent}` }}>
+                  {r.answer}
+                </div>
+                <div style={{ marginTop: 8, fontSize: 12, color: C.textMuted, textAlign: "right" }}>Submitted {fmt(r.created_at)}</div>
               </Card>
             ))}
           </div>
@@ -451,7 +527,6 @@ function AdminPanel({ user, onLogout }) {
   );
 }
 
-// ─── ROOT APP ─────────────────────────────────────────────────────────────────
 export default function App() {
   const [user, setUser] = useState(null);
   const [profile, setProfile] = useState(null);
