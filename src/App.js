@@ -25,21 +25,29 @@ const lesson = {
     { word: "Biodiversity", emoji: "🐠", definition: "The variety of life in a particular habitat or ecosystem" },
     { word: "Photosynthesis", emoji: "☀️", definition: "How plants use sunlight to make food from water and CO₂" },
   ],
+  preCheck: {
+    type: "mcq",
+    stage: "pre",
+    label: "Pre-Reading Check",
+    question: "Which ocean habitat has the most biodiversity?",
+    options: ["Deep ocean trenches", "Coral reefs", "Open ocean surface", "Polar ice regions"],
+    correct: 1
+  },
   paragraphs: [
     {
       emoji: "🌍",
       text: "The ocean covers more than 70% of Earth's surface and is home to an astonishing variety of life. From the sunlit surface waters to the darkest trenches miles below, marine ecosystems support millions of species.",
-      task: { type: "mcq", question: "How much of Earth's surface does the ocean cover?", options: ["About 50%", "About 60%", "More than 70%", "About 80%"], correct: 2 }
+      task: { type: "mcq", stage: "while", label: "Paragraph 1", question: "How much of Earth's surface does the ocean cover?", options: ["About 50%", "About 60%", "More than 70%", "About 80%"], correct: 2 }
     },
     {
       emoji: "🪸",
       text: "Coral reefs are often called the 'rainforests of the sea.' Although they cover less than 1% of the ocean floor, coral reefs are home to approximately 25% of all marine species. These reefs provide shelter, food, and nursery grounds for countless creatures.",
-      task: { type: "truefalse", question: "Coral reefs cover more than 50% of the ocean floor.", correct: false }
+      task: { type: "truefalse", stage: "while", label: "Paragraph 2", question: "Coral reefs cover more than 50% of the ocean floor.", correct: false }
     },
     {
       emoji: "🔬",
       text: "Phytoplankton are microscopic plants floating near the ocean's surface. Using sunlight, water, and carbon dioxide, they perform photosynthesis — producing oxygen and forming the base of the marine food web. Phytoplankton produce about half of all the oxygen on Earth!",
-      task: { type: "mcq", question: "What percentage of Earth's oxygen do phytoplankton produce?", options: ["10%", "25%", "About half", "75%"], correct: 2 }
+      task: { type: "mcq", stage: "while", label: "Paragraph 3", question: "What percentage of Earth's oxygen do phytoplankton produce?", options: ["10%", "25%", "About half", "75%"], correct: 2 }
     },
   ],
   postReading: [
@@ -98,8 +106,7 @@ function AuthScreen({ onLogin }) {
     setLoading(true); setMsg("");
     const { data, error } = await supabase.auth.signInWithPassword({ email, password });
     if (error) { setMsg("❌ " + error.message); setLoading(false); return; }
-    onLogin(data.user);
-    setLoading(false);
+    onLogin(data.user); setLoading(false);
   };
 
   const handleRegister = async () => {
@@ -113,9 +120,7 @@ function AuthScreen({ onLogin }) {
         role: email === ADMIN_EMAIL ? "admin" : "student"
       });
     }
-    setMsg("✅ Registered! Now log in.");
-    setMode("login");
-    setLoading(false);
+    setMsg("✅ Registered! Now log in."); setMode("login"); setLoading(false);
   };
 
   return (
@@ -171,178 +176,7 @@ function VocabCard({ item }) {
   );
 }
 
-// ─── MCQ — любой ответ принимается, показываем правильный, потом Continue ─────
-function MCQTask({ task, onContinue }) {
-  const [sel, setSel] = useState(null);
-  const [checked, setChecked] = useState(false);
-  const isCorrect = sel === task.correct;
-
-  return (
-    <div>
-      <div style={{ fontWeight: 600, color: C.text, marginBottom: 14, fontSize: 15 }}>{task.question}</div>
-      {task.options.map((opt, i) => {
-        let bg = C.surface, border = C.accentBorder, color = C.text;
-        if (checked) {
-          if (i === task.correct) { bg = C.success + "20"; border = C.success; color = C.success; }
-          else if (i === sel) { bg = C.error + "20"; border = C.error; color = C.error; }
-        } else if (i === sel) { bg = C.accentSoft; border = C.accent; color = C.accent; }
-        return (
-          <button key={i} onClick={() => !checked && setSel(i)} style={{
-            display: "block", width: "100%", textAlign: "left", padding: "11px 16px", marginBottom: 8,
-            background: bg, border: `1.5px solid ${border}`, borderRadius: 10, color,
-            cursor: checked ? "default" : "pointer", fontSize: 14, transition: "all 0.2s",
-            fontFamily: "'Segoe UI', sans-serif"
-          }}>
-            {checked && i === task.correct ? "✓ " : ""}
-            {checked && i === sel && i !== task.correct ? "✗ " : ""}
-            {String.fromCharCode(65 + i)}. {opt}
-          </button>
-        );
-      })}
-
-      {!checked && (
-        <Btn onClick={() => { if (sel !== null) setChecked(true); }} disabled={sel === null}>
-          Check my answer →
-        </Btn>
-      )}
-
-      {checked && (
-        <div style={{ marginTop: 14 }}>
-          <div style={{
-            padding: "12px 16px", borderRadius: 12, marginBottom: 14,
-            background: isCorrect ? C.success + "15" : C.error + "15",
-            border: `1px solid ${isCorrect ? C.success : C.error}40`,
-            color: isCorrect ? C.success : C.error, fontSize: 14
-          }}>
-            {isCorrect
-              ? "✓ Correct! Well done."
-              : `✗ Not quite. The correct answer is: ${task.options[task.correct]}`}
-          </div>
-          <Btn onClick={onContinue} style={{ width: "100%" }}>
-            Continue →
-          </Btn>
-        </div>
-      )}
-    </div>
-  );
-}
-
-// ─── TRUE/FALSE — то же самое ─────────────────────────────────────────────────
-function TrueFalseTask({ task, onContinue }) {
-  const [sel, setSel] = useState(null);
-  const [checked, setChecked] = useState(false);
-  const isCorrect = sel === task.correct;
-
-  return (
-    <div>
-      <div style={{ fontWeight: 600, color: C.text, marginBottom: 14, fontSize: 15 }}>
-        True or False: {task.question}
-      </div>
-      <div style={{ display: "flex", gap: 12, marginBottom: 14 }}>
-        {[true, false].map(val => {
-          let bg = C.surface, border = C.accentBorder, color = C.textMuted;
-          if (checked) {
-            if (val === task.correct) { bg = C.success + "20"; border = C.success; color = C.success; }
-            else if (val === sel) { bg = C.error + "20"; border = C.error; color = C.error; }
-          } else if (val === sel) { bg = C.accentSoft; border = C.accent; color = C.accent; }
-          return (
-            <button key={String(val)} onClick={() => !checked && setSel(val)} style={{
-              flex: 1, padding: "14px", background: bg, border: `1.5px solid ${border}`,
-              borderRadius: 12, color, fontWeight: 700, fontSize: 15,
-              cursor: checked ? "default" : "pointer", transition: "all 0.2s",
-              fontFamily: "'Segoe UI', sans-serif"
-            }}>{val ? "TRUE" : "FALSE"}</button>
-          );
-        })}
-      </div>
-
-      {!checked && (
-        <Btn onClick={() => { if (sel !== null) setChecked(true); }} disabled={sel === null}>
-          Check my answer →
-        </Btn>
-      )}
-
-      {checked && (
-        <div style={{ marginTop: 4 }}>
-          <div style={{
-            padding: "12px 16px", borderRadius: 12, marginBottom: 14,
-            background: isCorrect ? C.success + "15" : C.error + "15",
-            border: `1px solid ${isCorrect ? C.success : C.error}40`,
-            color: isCorrect ? C.success : C.error, fontSize: 14
-          }}>
-            {isCorrect
-              ? "✓ Correct! Well done."
-              : `✗ Not quite. The correct answer is: ${task.correct ? "TRUE" : "FALSE"}`}
-          </div>
-          <Btn onClick={onContinue} style={{ width: "100%" }}>
-            Continue →
-          </Btn>
-        </div>
-      )}
-    </div>
-  );
-}
-
-// ─── PARAGRAPH BLOCK — параграф + задание с реальным onContinue ───────────────
-function ParagraphBlock({ para, index, isActive, isDone, onContinue }) {
-  const saveResult = async (studentAnswer, correctAnswer, isCorrect) => {
-    await supabase.from("task_results").insert({
-      lesson_title: lesson.title,
-      paragraph_index: index,
-      question: para.task.question,
-      student_answer: studentAnswer,
-      correct_answer: correctAnswer,
-      is_correct: isCorrect,
-      answered_at: new Date().toISOString()
-    });
-    onContinue(studentAnswer, correctAnswer, isCorrect);
-  };
-
-  const handleMCQContinue = (sel, task) => {
-    const studentAnswer = task.options[sel];
-    const correctAnswer = task.options[task.correct];
-    const isCorrect = sel === task.correct;
-    saveResult(studentAnswer, correctAnswer, isCorrect);
-  };
-
-  const handleTFContinue = (sel, task) => {
-    const studentAnswer = sel ? "TRUE" : "FALSE";
-    const correctAnswer = task.correct ? "TRUE" : "FALSE";
-    const isCorrect = sel === task.correct;
-    saveResult(studentAnswer, correctAnswer, isCorrect);
-  };
-
-  return (
-    <div>
-      <Card>
-        <div style={{ display: "flex", gap: 14, alignItems: "flex-start" }}>
-          <div style={{ fontSize: 40, flexShrink: 0 }}>{para.emoji}</div>
-          <p style={{ fontSize: 15, lineHeight: 1.8, color: C.text, margin: 0 }}>{para.text}</p>
-        </div>
-      </Card>
-
-      {isActive && (
-        <Card style={{ borderColor: C.accent + "60" }}>
-          <div style={{ fontSize: 11, color: C.accent, textTransform: "uppercase", letterSpacing: "0.08em", marginBottom: 16 }}>
-            ✏️ Comprehension Check
-          </div>
-          {para.task.type === "mcq" && (
-            <MCQTaskWithCapture task={para.task} onContinue={handleMCQContinue} />
-          )}
-          {para.task.type === "truefalse" && (
-            <TrueFalseTaskWithCapture task={para.task} onContinue={handleTFContinue} />
-          )}
-        </Card>
-      )}
-
-      {isDone && (
-        <div style={{ color: C.success, fontSize: 12, marginBottom: 16, marginTop: -10 }}>✓ Completed</div>
-      )}
-    </div>
-  );
-}
-
-// ─── MCQ variant that captures selection before calling parent ────────────────
+// ─── TASK COMPONENTS ──────────────────────────────────────────────────────────
 function MCQTaskWithCapture({ task, onContinue }) {
   const [sel, setSel] = useState(null);
   const [checked, setChecked] = useState(false);
@@ -370,24 +204,13 @@ function MCQTaskWithCapture({ task, onContinue }) {
           </button>
         );
       })}
-      {!checked && (
-        <Btn onClick={() => { if (sel !== null) setChecked(true); }} disabled={sel === null}>
-          Check my answer →
-        </Btn>
-      )}
+      {!checked && <Btn onClick={() => { if (sel !== null) setChecked(true); }} disabled={sel === null}>Check my answer →</Btn>}
       {checked && (
         <div style={{ marginTop: 14 }}>
-          <div style={{
-            padding: "12px 16px", borderRadius: 12, marginBottom: 14,
-            background: isCorrect ? C.success + "15" : C.error + "15",
-            border: `1px solid ${isCorrect ? C.success : C.error}40`,
-            color: isCorrect ? C.success : C.error, fontSize: 14
-          }}>
+          <div style={{ padding: "12px 16px", borderRadius: 12, marginBottom: 14, background: isCorrect ? C.success + "15" : C.error + "15", border: `1px solid ${isCorrect ? C.success : C.error}40`, color: isCorrect ? C.success : C.error, fontSize: 14 }}>
             {isCorrect ? "✓ Correct! Well done." : `✗ Not quite. The correct answer is: ${task.options[task.correct]}`}
           </div>
-          <Btn onClick={() => onContinue(sel, task)} style={{ width: "100%" }}>
-            Continue →
-          </Btn>
+          <Btn onClick={() => onContinue(task.options[sel], task.options[task.correct], isCorrect)} style={{ width: "100%" }}>Continue →</Btn>
         </div>
       )}
     </div>
@@ -401,9 +224,7 @@ function TrueFalseTaskWithCapture({ task, onContinue }) {
 
   return (
     <div>
-      <div style={{ fontWeight: 600, color: C.text, marginBottom: 14, fontSize: 15 }}>
-        True or False: {task.question}
-      </div>
+      <div style={{ fontWeight: 600, color: C.text, marginBottom: 14, fontSize: 15 }}>True or False: {task.question}</div>
       <div style={{ display: "flex", gap: 12, marginBottom: 14 }}>
         {[true, false].map(val => {
           let bg = C.surface, border = C.accentBorder, color = C.textMuted;
@@ -415,30 +236,18 @@ function TrueFalseTaskWithCapture({ task, onContinue }) {
             <button key={String(val)} onClick={() => !checked && setSel(val)} style={{
               flex: 1, padding: "14px", background: bg, border: `1.5px solid ${border}`,
               borderRadius: 12, color, fontWeight: 700, fontSize: 15,
-              cursor: checked ? "default" : "pointer", transition: "all 0.2s",
-              fontFamily: "'Segoe UI', sans-serif"
+              cursor: checked ? "default" : "pointer", transition: "all 0.2s", fontFamily: "'Segoe UI', sans-serif"
             }}>{val ? "TRUE" : "FALSE"}</button>
           );
         })}
       </div>
-      {!checked && (
-        <Btn onClick={() => { if (sel !== null) setChecked(true); }} disabled={sel === null}>
-          Check my answer →
-        </Btn>
-      )}
+      {!checked && <Btn onClick={() => { if (sel !== null) setChecked(true); }} disabled={sel === null}>Check my answer →</Btn>}
       {checked && (
         <div style={{ marginTop: 4 }}>
-          <div style={{
-            padding: "12px 16px", borderRadius: 12, marginBottom: 14,
-            background: isCorrect ? C.success + "15" : C.error + "15",
-            border: `1px solid ${isCorrect ? C.success : C.error}40`,
-            color: isCorrect ? C.success : C.error, fontSize: 14
-          }}>
+          <div style={{ padding: "12px 16px", borderRadius: 12, marginBottom: 14, background: isCorrect ? C.success + "15" : C.error + "15", border: `1px solid ${isCorrect ? C.success : C.error}40`, color: isCorrect ? C.success : C.error, fontSize: 14 }}>
             {isCorrect ? "✓ Correct! Well done." : `✗ Not quite. The correct answer is: ${task.correct ? "TRUE" : "FALSE"}`}
           </div>
-          <Btn onClick={() => onContinue(sel, task)} style={{ width: "100%" }}>
-            Continue →
-          </Btn>
+          <Btn onClick={() => onContinue(sel ? "TRUE" : "FALSE", task.correct ? "TRUE" : "FALSE", isCorrect)} style={{ width: "100%" }}>Continue →</Btn>
         </div>
       )}
     </div>
@@ -457,31 +266,47 @@ function StudentPanel({ user, onLogout }) {
   const [toast, setToast] = useState("");
   const [saving, setSaving] = useState(false);
 
+  // Create attempt when entering post-reading
   useEffect(() => {
     if (stage === 2 && !attemptId) {
       supabase.from("attempts").insert({
-        user_id: user.id,
-        lesson_title: lesson.title,
-        started_at: new Date().toISOString()
-      }).select().single().then(({ data }) => {
-        if (data) setAttemptId(data.id);
-      });
+        user_id: user.id, lesson_title: lesson.title, started_at: new Date().toISOString()
+      }).select().single().then(({ data }) => { if (data) setAttemptId(data.id); });
     }
   }, [stage]);
 
   const showToast = (msg) => { setToast(msg); setTimeout(() => setToast(""), 2000); };
 
-  const handleParaContinue = (paraIdx, studentAnswer, correctAnswer, isCorrect) => {
-    showToast(isCorrect ? "🎉 Correct!" : "📖 Keep going!");
-    setParasDone(prev => [...prev, paraIdx]);
-    if (paraIdx < lesson.paragraphs.length - 1) {
-      setParaIndex(paraIdx + 1);
-    } else {
-      setStage(2);
-    }
+  // Save any task result (pre or while) with user_id
+  const saveTaskResult = async (stageLabel, taskLabel, question, studentAnswer, correctAnswer, isCorrect) => {
+    await supabase.from("task_results").insert({
+      user_id: user.id,
+      lesson_title: lesson.title,
+      stage: stageLabel,
+      task_label: taskLabel,
+      question,
+      student_answer: studentAnswer,
+      correct_answer: correctAnswer,
+      is_correct: isCorrect,
+      answered_at: new Date().toISOString()
+    });
   };
 
-  const submitAnswer = async (i) => {
+  const handlePreCheckContinue = async (studentAnswer, correctAnswer, isCorrect) => {
+    await saveTaskResult("pre", "Pre-Reading Check", lesson.preCheck.question, studentAnswer, correctAnswer, isCorrect);
+    setStage(1);
+  };
+
+  const handleParaContinue = async (paraIdx, studentAnswer, correctAnswer, isCorrect) => {
+    const para = lesson.paragraphs[paraIdx];
+    await saveTaskResult("while", para.task.label, para.task.question, studentAnswer, correctAnswer, isCorrect);
+    showToast(isCorrect ? "🎉 Correct!" : "📖 Keep going!");
+    setParasDone(prev => [...prev, paraIdx]);
+    if (paraIdx < lesson.paragraphs.length - 1) setParaIndex(paraIdx + 1);
+    else setStage(2);
+  };
+
+  const submitPostAnswer = async (i) => {
     if (!postAnswers[i]?.trim() || !attemptId) return;
     setSaving(true);
     await supabase.from("student_responses").insert({
@@ -541,8 +366,10 @@ function StudentPanel({ user, onLogout }) {
               <Card>
                 <h3 style={{ marginBottom: 16, color: C.stage1 }}>🧠 Quick Knowledge Check</h3>
                 <MCQTaskWithCapture
-                  task={{ type: "mcq", question: "Which ocean habitat has the most biodiversity?", options: ["Deep ocean trenches", "Coral reefs", "Open ocean surface", "Polar ice regions"], correct: 1 }}
-                  onContinue={() => setStage(1)}
+                  task={lesson.preCheck}
+                  onContinue={(studentAnswer, correctAnswer, isCorrect) =>
+                    handlePreCheckContinue(studentAnswer, correctAnswer, isCorrect)
+                  }
                 />
               </Card>
             )}
@@ -556,22 +383,37 @@ function StudentPanel({ user, onLogout }) {
               <h3 style={{ color: C.accent, fontSize: 18 }}>🔍 While Reading</h3>
               <div style={{ fontSize: 13, color: C.textMuted }}>{parasDone.length}/{lesson.paragraphs.length} completed</div>
             </div>
-
             {lesson.paragraphs.map((para, i) => {
               if (i > paraIndex) return null;
               const isActive = i === paraIndex;
               const isDone = parasDone.includes(i) && !isActive;
               return (
-                <ParagraphBlock
-                  key={i}
-                  para={para}
-                  index={i}
-                  isActive={isActive}
-                  isDone={isDone}
-                  onContinue={(studentAnswer, correctAnswer, isCorrect) =>
-                    handleParaContinue(i, studentAnswer, correctAnswer, isCorrect)
-                  }
-                />
+                <div key={i}>
+                  <Card>
+                    <div style={{ display: "flex", gap: 14, alignItems: "flex-start" }}>
+                      <div style={{ fontSize: 40, flexShrink: 0 }}>{para.emoji}</div>
+                      <p style={{ fontSize: 15, lineHeight: 1.8, color: C.text, margin: 0 }}>{para.text}</p>
+                    </div>
+                  </Card>
+                  {isActive && (
+                    <Card style={{ borderColor: C.accent + "60" }}>
+                      <div style={{ fontSize: 11, color: C.accent, textTransform: "uppercase", letterSpacing: "0.08em", marginBottom: 16 }}>✏️ Comprehension Check</div>
+                      {para.task.type === "mcq" && (
+                        <MCQTaskWithCapture
+                          task={para.task}
+                          onContinue={(sa, ca, ic) => handleParaContinue(i, sa, ca, ic)}
+                        />
+                      )}
+                      {para.task.type === "truefalse" && (
+                        <TrueFalseTaskWithCapture
+                          task={para.task}
+                          onContinue={(sa, ca, ic) => handleParaContinue(i, sa, ca, ic)}
+                        />
+                      )}
+                    </Card>
+                  )}
+                  {isDone && <div style={{ color: C.success, fontSize: 12, marginBottom: 16, marginTop: -10 }}>✓ Completed</div>}
+                </div>
               );
             })}
           </div>
@@ -593,7 +435,7 @@ function StudentPanel({ user, onLogout }) {
                   placeholder="Write your answer here..."
                   style={{ width: "100%", minHeight: 100, background: C.surface, border: `1.5px solid ${postSubmitted[i] ? C.success + "60" : C.accentBorder}`, borderRadius: 10, padding: 14, color: C.text, fontFamily: "'Segoe UI', sans-serif", fontSize: 14, resize: "vertical", outline: "none", boxSizing: "border-box", lineHeight: 1.6 }} />
                 {!postSubmitted[i] ? (
-                  <Btn onClick={() => submitAnswer(i)} color={C.gold} disabled={saving || !postAnswers[i]?.trim()} style={{ marginTop: 12 }}>
+                  <Btn onClick={() => submitPostAnswer(i)} color={C.gold} disabled={saving || !postAnswers[i]?.trim()} style={{ marginTop: 12 }}>
                     {saving ? "Saving..." : "Save Answer →"}
                   </Btn>
                 ) : (
@@ -617,39 +459,44 @@ function StudentPanel({ user, onLogout }) {
 
 // ─── ADMIN PANEL ──────────────────────────────────────────────────────────────
 function AdminPanel({ user, onLogout }) {
-  const [tab, setTab] = useState("students");
   const [students, setStudents] = useState([]);
-  const [selectedStudent, setSelectedStudent] = useState(null);
-  const [attempts, setAttempts] = useState([]);
-  const [selectedAttempt, setSelectedAttempt] = useState(null);
-  const [responses, setResponses] = useState([]);
-  const [taskResults, setTaskResults] = useState([]);
+  const [selected, setSelected] = useState(null);
+  const [allData, setAllData] = useState(null); // { taskResults, attempts, responses }
   const [loading, setLoading] = useState(true);
+  const [detailAttempt, setDetailAttempt] = useState(null);
+  const [detailResponses, setDetailResponses] = useState([]);
 
   useEffect(() => {
     supabase.from("profiles").select("*").eq("role", "student").order("created_at", { ascending: false })
       .then(({ data }) => { setStudents(data || []); setLoading(false); });
   }, []);
 
-  const loadStudentAttempts = async (student) => {
-    setSelectedStudent(student);
-    setSelectedAttempt(null);
-    setResponses([]);
-    const { data: att } = await supabase.from("attempts").select("*").eq("user_id", student.id).order("started_at", { ascending: false });
-    setAttempts(att || []);
-    const { data: tr } = await supabase.from("task_results").select("*").eq("user_id", student.id).order("answered_at", { ascending: false });
-    setTaskResults(tr || []);
-    setTab("attempts");
-  };
+  const loadStudent = async (student) => {
+    setSelected(student);
+    setDetailAttempt(null);
+    setDetailResponses([]);
 
-  const loadAttemptResponses = async (attempt) => {
-    setSelectedAttempt(attempt);
-    const { data } = await supabase.from("student_responses").select("*").eq("attempt_id", attempt.id).order("created_at", { ascending: true });
-    setResponses(data || []);
-    setTab("responses");
+    const [{ data: taskResults }, { data: attempts }] = await Promise.all([
+      supabase.from("task_results").select("*").eq("user_id", student.id).order("answered_at", { ascending: true }),
+      supabase.from("attempts").select("*").eq("user_id", student.id).order("started_at", { ascending: false }),
+    ]);
+
+    // for each attempt load responses
+    let responsesMap = {};
+    if (attempts) {
+      for (const att of attempts) {
+        const { data: resp } = await supabase.from("student_responses").select("*").eq("attempt_id", att.id).order("created_at", { ascending: true });
+        responsesMap[att.id] = resp || [];
+      }
+    }
+
+    setAllData({ taskResults: taskResults || [], attempts: attempts || [], responsesMap });
   };
 
   const fmt = (str) => new Date(str).toLocaleString("en-GB", { day: "2-digit", month: "short", year: "numeric", hour: "2-digit", minute: "2-digit" });
+
+  const stageColor = (stage) => stage === "pre" ? C.stage1 : stage === "while" ? C.accent : C.gold;
+  const stageLabel = (stage) => stage === "pre" ? "Pre-Reading" : stage === "while" ? "While Reading" : "Post-Reading";
 
   return (
     <div style={{ minHeight: "100vh", background: C.bg, color: C.text, fontFamily: "'Segoe UI', sans-serif" }}>
@@ -661,121 +508,131 @@ function AdminPanel({ user, onLogout }) {
         <button onClick={onLogout} style={{ background: "none", border: `1px solid ${C.accentBorder}`, borderRadius: 8, padding: "8px 16px", color: C.textMuted, cursor: "pointer", fontSize: 13 }}>Log out</button>
       </div>
 
-      <div style={{ background: C.surface, padding: "0 24px", display: "flex", alignItems: "center", gap: 4, borderBottom: `1px solid ${C.accentBorder}`, flexWrap: "wrap" }}>
-        <button onClick={() => { setTab("students"); setSelectedStudent(null); setSelectedAttempt(null); }} style={{ padding: "14px 16px", background: "none", border: "none", borderBottom: `3px solid ${tab === "students" ? C.accent : "transparent"}`, color: tab === "students" ? C.accent : C.textMuted, cursor: "pointer", fontWeight: tab === "students" ? 700 : 400, fontSize: 14 }}>
-          👥 All Students ({students.length})
-        </button>
-        {selectedStudent && <>
-          <span style={{ color: C.textMuted, fontSize: 18 }}>›</span>
-          <button onClick={() => { setTab("attempts"); setSelectedAttempt(null); }} style={{ padding: "14px 16px", background: "none", border: "none", borderBottom: `3px solid ${["attempts","tasks"].includes(tab) ? C.accent : "transparent"}`, color: ["attempts","tasks"].includes(tab) ? C.accent : C.textMuted, cursor: "pointer", fontWeight: 700, fontSize: 14 }}>
-            📋 {selectedStudent.full_name}
-          </button>
-        </>}
-        {selectedAttempt && <>
-          <span style={{ color: C.textMuted, fontSize: 18 }}>›</span>
-          <span style={{ padding: "14px 16px", borderBottom: `3px solid ${C.gold}`, color: C.gold, fontWeight: 700, fontSize: 14 }}>
-            📝 {fmt(selectedAttempt.started_at)}
-          </span>
-        </>}
-      </div>
+      <div style={{ display: "flex", height: "calc(100vh - 65px)" }}>
 
-      <div style={{ maxWidth: 900, margin: "0 auto", padding: "28px 20px" }}>
-
-        {tab === "students" && (
-          <div>
-            <h3 style={{ marginBottom: 6, color: C.accent }}>All Students</h3>
-            <p style={{ color: C.textMuted, fontSize: 13, marginBottom: 20 }}>Click a student to see their activity</p>
-            {loading && <div style={{ color: C.textMuted, padding: 20 }}>Loading...</div>}
-            {!loading && students.length === 0 && <Card><div style={{ color: C.textMuted, textAlign: "center", padding: 20 }}>No students yet. Share: <strong style={{ color: C.accent }}>hearing-platform.vercel.app</strong></div></Card>}
-            {students.map(s => (
-              <Card key={s.id} style={{ cursor: "pointer" }} onClick={() => loadStudentAttempts(s)}>
-                <div style={{ display: "flex", alignItems: "center", gap: 16 }}>
-                  <div style={{ width: 48, height: 48, borderRadius: "50%", background: C.accentSoft, border: `2px solid ${C.accentBorder}`, display: "flex", alignItems: "center", justifyContent: "center", fontSize: 22, flexShrink: 0 }}>👤</div>
-                  <div style={{ flex: 1 }}>
-                    <div style={{ fontWeight: 700, fontSize: 16 }}>{s.full_name}</div>
-                    <div style={{ fontSize: 13, color: C.textMuted }}>{s.email}</div>
-                  </div>
-                  <div style={{ textAlign: "right" }}>
-                    <div style={{ fontSize: 12, color: C.textMuted }}>Joined {fmt(s.created_at)}</div>
-                    <div style={{ fontSize: 13, color: C.accent, marginTop: 4, fontWeight: 600 }}>View activity →</div>
-                  </div>
-                </div>
-              </Card>
-            ))}
+        {/* LEFT: student list */}
+        <div style={{ width: 260, background: C.surface, borderRight: `1px solid ${C.accentBorder}`, overflowY: "auto", flexShrink: 0 }}>
+          <div style={{ padding: "16px 20px", borderBottom: `1px solid ${C.accentBorder}` }}>
+            <div style={{ fontWeight: 700, color: C.accent, fontSize: 14 }}>👥 Students ({students.length})</div>
           </div>
-        )}
+          {loading && <div style={{ padding: 20, color: C.textMuted, fontSize: 13 }}>Loading...</div>}
+          {!loading && students.length === 0 && <div style={{ padding: 20, color: C.textMuted, fontSize: 13 }}>No students yet.</div>}
+          {students.map(s => (
+            <div key={s.id} onClick={() => loadStudent(s)} style={{
+              padding: "14px 20px", cursor: "pointer", borderBottom: `1px solid ${C.accentBorder}20`,
+              background: selected?.id === s.id ? C.accentSoft : "transparent",
+              borderLeft: `3px solid ${selected?.id === s.id ? C.accent : "transparent"}`,
+              transition: "all 0.15s"
+            }}>
+              <div style={{ fontWeight: 600, fontSize: 14, color: C.text }}>{s.full_name}</div>
+              <div style={{ fontSize: 12, color: C.textMuted, marginTop: 2 }}>{s.email}</div>
+            </div>
+          ))}
+        </div>
 
-        {tab === "attempts" && selectedStudent && (
-          <div>
-            <h3 style={{ marginBottom: 20, color: C.accent }}>{selectedStudent.full_name}</h3>
+        {/* RIGHT: student detail */}
+        <div style={{ flex: 1, overflowY: "auto", padding: "28px 32px" }}>
+          {!selected && (
+            <div style={{ textAlign: "center", padding: 60, color: C.textMuted }}>
+              <div style={{ fontSize: 48, marginBottom: 16 }}>👈</div>
+              <div style={{ fontSize: 16 }}>Select a student to see all their answers</div>
+            </div>
+          )}
 
-            <h4 style={{ color: C.text, marginBottom: 6, fontSize: 15 }}>📊 While-Reading Task Results</h4>
-            <p style={{ color: C.textMuted, fontSize: 13, marginBottom: 14 }}>Every comprehension check this student answered</p>
-            {taskResults.length === 0 && <div style={{ color: C.textMuted, fontSize: 13, marginBottom: 28 }}>No task results yet.</div>}
-            {taskResults.map((tr, i) => (
-              <div key={i} style={{ background: C.surface, borderRadius: 14, padding: "14px 18px", marginBottom: 10, border: `1px solid ${tr.is_correct ? C.success + "40" : C.error + "40"}`, display: "flex", gap: 14, alignItems: "flex-start" }}>
-                <div style={{ width: 32, height: 32, borderRadius: "50%", background: tr.is_correct ? C.success + "20" : C.error + "20", display: "flex", alignItems: "center", justifyContent: "center", fontSize: 16, flexShrink: 0, color: tr.is_correct ? C.success : C.error, fontWeight: 800 }}>
-                  {tr.is_correct ? "✓" : "✗"}
-                </div>
-                <div style={{ flex: 1 }}>
-                  <div style={{ fontWeight: 600, fontSize: 14, color: C.text, marginBottom: 6 }}>{tr.question}</div>
-                  <div style={{ display: "flex", gap: 20, flexWrap: "wrap" }}>
-                    <div style={{ fontSize: 13 }}>
-                      <span style={{ color: C.textMuted }}>Student: </span>
-                      <span style={{ color: tr.is_correct ? C.success : C.error, fontWeight: 600 }}>{tr.student_answer}</span>
-                    </div>
-                    {!tr.is_correct && (
-                      <div style={{ fontSize: 13 }}>
-                        <span style={{ color: C.textMuted }}>Correct: </span>
-                        <span style={{ color: C.success, fontWeight: 600 }}>{tr.correct_answer}</span>
-                      </div>
-                    )}
-                  </div>
-                </div>
-                <div style={{ fontSize: 11, color: C.textMuted, flexShrink: 0 }}>{fmt(tr.answered_at)}</div>
+          {selected && !allData && (
+            <div style={{ color: C.textMuted, padding: 20 }}>Loading...</div>
+          )}
+
+          {selected && allData && (
+            <div>
+              <div style={{ marginBottom: 28 }}>
+                <h2 style={{ fontSize: 22, fontWeight: 800, marginBottom: 4 }}>{selected.full_name}</h2>
+                <div style={{ fontSize: 13, color: C.textMuted }}>{selected.email}</div>
               </div>
-            ))}
 
-            <h4 style={{ color: C.text, marginBottom: 6, fontSize: 15, marginTop: 16 }}>✍️ Post-Reading Attempts</h4>
-            <p style={{ color: C.textMuted, fontSize: 13, marginBottom: 14 }}>Click to read open-ended answers</p>
-            {attempts.length === 0 && <div style={{ color: C.textMuted, fontSize: 13 }}>Student hasn't reached post-reading yet.</div>}
-            {attempts.map((a, i) => (
-              <Card key={a.id} style={{ cursor: "pointer" }} onClick={() => loadAttemptResponses(a)}>
-                <div style={{ display: "flex", alignItems: "center", gap: 16 }}>
-                  <div style={{ width: 44, height: 44, borderRadius: 12, background: C.goldSoft, border: `2px solid ${C.gold}40`, display: "flex", alignItems: "center", justifyContent: "center", fontSize: 20, flexShrink: 0 }}>📋</div>
+              {/* ── SECTION 1: Pre + While tasks ── */}
+              <h3 style={{ fontSize: 16, fontWeight: 700, color: C.text, marginBottom: 4 }}>📊 Test Answers (Pre & While Reading)</h3>
+              <p style={{ color: C.textMuted, fontSize: 13, marginBottom: 16 }}>Every multiple choice and true/false answer this student gave</p>
+
+              {allData.taskResults.length === 0 && (
+                <div style={{ color: C.textMuted, fontSize: 13, marginBottom: 28, padding: "16px", background: C.surface, borderRadius: 12 }}>No test answers yet.</div>
+              )}
+
+              {allData.taskResults.map((tr, i) => (
+                <div key={i} style={{
+                  background: C.surface, borderRadius: 14, padding: "16px 20px", marginBottom: 12,
+                  border: `1px solid ${tr.is_correct ? C.success + "40" : C.error + "40"}`,
+                  display: "flex", gap: 16, alignItems: "flex-start"
+                }}>
+                  {/* Stage badge */}
+                  <div style={{ flexShrink: 0, display: "flex", flexDirection: "column", alignItems: "center", gap: 6 }}>
+                    <div style={{ width: 36, height: 36, borderRadius: "50%", background: tr.is_correct ? C.success + "20" : C.error + "20", display: "flex", alignItems: "center", justifyContent: "center", fontSize: 18, color: tr.is_correct ? C.success : C.error, fontWeight: 800 }}>
+                      {tr.is_correct ? "✓" : "✗"}
+                    </div>
+                    <div style={{ fontSize: 10, padding: "2px 8px", borderRadius: 20, background: stageColor(tr.stage) + "20", color: stageColor(tr.stage), fontWeight: 700, whiteSpace: "nowrap" }}>
+                      {stageLabel(tr.stage)}
+                    </div>
+                  </div>
+
                   <div style={{ flex: 1 }}>
-                    <div style={{ fontWeight: 700 }}>Attempt #{attempts.length - i}</div>
-                    <div style={{ fontSize: 13, color: C.textMuted }}>{lesson.title}</div>
+                    <div style={{ fontSize: 11, color: C.textMuted, marginBottom: 4 }}>{tr.task_label}</div>
+                    <div style={{ fontWeight: 600, fontSize: 14, color: C.text, marginBottom: 10 }}>{tr.question}</div>
+                    <div style={{ display: "flex", gap: 24, flexWrap: "wrap" }}>
+                      <div style={{ fontSize: 13 }}>
+                        <span style={{ color: C.textMuted }}>Student answered: </span>
+                        <span style={{ fontWeight: 700, color: tr.is_correct ? C.success : C.error }}>{tr.student_answer}</span>
+                      </div>
+                      {!tr.is_correct && (
+                        <div style={{ fontSize: 13 }}>
+                          <span style={{ color: C.textMuted }}>Correct answer: </span>
+                          <span style={{ fontWeight: 700, color: C.success }}>{tr.correct_answer}</span>
+                        </div>
+                      )}
+                    </div>
                   </div>
-                  <div style={{ textAlign: "right" }}>
-                    <div style={{ fontSize: 12, color: C.textMuted }}>{fmt(a.started_at)}</div>
-                    <div style={{ fontSize: 13, color: C.gold, marginTop: 4, fontWeight: 600 }}>Read answers →</div>
-                  </div>
+                  <div style={{ fontSize: 11, color: C.textMuted, flexShrink: 0, textAlign: "right" }}>{fmt(tr.answered_at)}</div>
                 </div>
-              </Card>
-            ))}
-          </div>
-        )}
+              ))}
 
-        {tab === "responses" && selectedAttempt && (
-          <div>
-            <h3 style={{ marginBottom: 4, color: C.accent }}>{selectedStudent?.full_name} — Open Answers</h3>
-            <p style={{ color: C.textMuted, fontSize: 13, marginBottom: 24 }}>Session on {fmt(selectedAttempt.started_at)}</p>
-            {responses.length === 0 && <Card><div style={{ color: C.textMuted, textAlign: "center", padding: 20 }}>No answers saved yet.</div></Card>}
-            {responses.map((r, i) => (
-              <Card key={r.id}>
-                <div style={{ display: "flex", gap: 12, alignItems: "flex-start", marginBottom: 12 }}>
-                  <div style={{ width: 30, height: 30, borderRadius: "50%", background: C.goldSoft, border: `1.5px solid ${C.gold}`, display: "flex", alignItems: "center", justifyContent: "center", color: C.gold, fontWeight: 800, fontSize: 13, flexShrink: 0 }}>{i + 1}</div>
-                  <div style={{ fontWeight: 600, fontSize: 15, color: C.text, lineHeight: 1.5 }}>{r.question}</div>
-                </div>
-                <div style={{ background: C.surface, borderRadius: 12, padding: "14px 16px", fontSize: 14, lineHeight: 1.7, color: C.text, borderLeft: `3px solid ${C.accent}` }}>
-                  {r.answer}
-                </div>
-                <div style={{ marginTop: 8, fontSize: 12, color: C.textMuted, textAlign: "right" }}>Submitted {fmt(r.created_at)}</div>
-              </Card>
-            ))}
-          </div>
-        )}
+              {/* ── SECTION 2: Post-reading open answers ── */}
+              <h3 style={{ fontSize: 16, fontWeight: 700, color: C.text, marginBottom: 4, marginTop: 32 }}>✍️ Post-Reading Open Answers</h3>
+              <p style={{ color: C.textMuted, fontSize: 13, marginBottom: 16 }}>Written responses — each block is one session attempt</p>
+
+              {allData.attempts.length === 0 && (
+                <div style={{ color: C.textMuted, fontSize: 13, padding: "16px", background: C.surface, borderRadius: 12 }}>Student hasn't reached post-reading yet.</div>
+              )}
+
+              {allData.attempts.map((att, ai) => {
+                const responses = allData.responsesMap[att.id] || [];
+                return (
+                  <div key={att.id} style={{ background: C.surface, borderRadius: 16, padding: "20px", marginBottom: 20, border: `1px solid ${C.gold}30` }}>
+                    <div style={{ display: "flex", alignItems: "center", gap: 12, marginBottom: 16 }}>
+                      <div style={{ width: 32, height: 32, borderRadius: 8, background: C.goldSoft, border: `1.5px solid ${C.gold}50`, display: "flex", alignItems: "center", justifyContent: "center", fontSize: 16 }}>📋</div>
+                      <div>
+                        <div style={{ fontWeight: 700, fontSize: 14, color: C.gold }}>Attempt #{allData.attempts.length - ai}</div>
+                        <div style={{ fontSize: 12, color: C.textMuted }}>{fmt(att.started_at)}</div>
+                      </div>
+                      <div style={{ marginLeft: "auto", fontSize: 12, color: C.textMuted }}>{responses.length}/{lesson.postReading.length} answered</div>
+                    </div>
+
+                    {responses.length === 0 && <div style={{ color: C.textMuted, fontSize: 13 }}>No answers saved yet.</div>}
+
+                    {responses.map((r, ri) => (
+                      <div key={r.id} style={{ marginBottom: 14 }}>
+                        <div style={{ fontSize: 13, fontWeight: 600, color: C.text, marginBottom: 6 }}>
+                          Q{ri + 1}. {r.question}
+                        </div>
+                        <div style={{ background: C.card, borderRadius: 10, padding: "12px 16px", fontSize: 14, lineHeight: 1.7, color: C.text, borderLeft: `3px solid ${C.accent}` }}>
+                          {r.answer}
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                );
+              })}
+            </div>
+          )}
+        </div>
       </div>
     </div>
   );
@@ -808,10 +665,7 @@ export default function App() {
     } else setProfile(p);
   };
 
-  const handleLogout = async () => {
-    await supabase.auth.signOut();
-    setUser(null); setProfile(null);
-  };
+  const handleLogout = async () => { await supabase.auth.signOut(); setUser(null); setProfile(null); };
 
   if (checking) return <div style={{ minHeight: "100vh", background: "#0f1923", display: "flex", alignItems: "center", justifyContent: "center", color: "#00c9a7", fontSize: 18 }}>Loading...</div>;
   if (!user) return <AuthScreen onLogin={handleLogin} />;
