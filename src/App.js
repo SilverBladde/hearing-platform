@@ -49,6 +49,7 @@ const lesson = {
   ]
 };
 
+// ─── HELPERS ──────────────────────────────────────────────────────────────────
 function Btn({ children, onClick, color = C.accent, disabled = false, style = {} }) {
   return (
     <button onClick={onClick} disabled={disabled} style={{
@@ -84,6 +85,7 @@ function Card({ children, style = {}, onClick }) {
   );
 }
 
+// ─── AUTH ─────────────────────────────────────────────────────────────────────
 function AuthScreen({ onLogin }) {
   const [mode, setMode] = useState("login");
   const [email, setEmail] = useState("");
@@ -150,6 +152,7 @@ function AuthScreen({ onLogin }) {
   );
 }
 
+// ─── VOCAB CARD ───────────────────────────────────────────────────────────────
 function VocabCard({ item }) {
   const [flipped, setFlipped] = useState(false);
   return (
@@ -168,68 +171,132 @@ function VocabCard({ item }) {
   );
 }
 
-function MCQTask({ task, onCorrect }) {
+// ─── MCQ TASK — любой ответ принимается, показываем правильный, затем Continue ─
+function MCQTask({ task, onContinue }) {
   const [sel, setSel] = useState(null);
-  const [done, setDone] = useState(false);
-  const submit = () => { if (sel === null) return; setDone(true); if (sel === task.correct) setTimeout(onCorrect, 1000); };
+  const [checked, setChecked] = useState(false);
+
+  const handleCheck = () => {
+    if (sel === null) return;
+    setChecked(true);
+  };
+
+  const isCorrect = sel === task.correct;
+
   return (
     <div>
       <div style={{ fontWeight: 600, color: C.text, marginBottom: 14, fontSize: 15 }}>{task.question}</div>
       {task.options.map((opt, i) => {
         let bg = C.surface, border = C.accentBorder, color = C.text;
-        if (done) {
+        if (checked) {
           if (i === task.correct) { bg = C.success + "20"; border = C.success; color = C.success; }
           else if (i === sel) { bg = C.error + "20"; border = C.error; color = C.error; }
         } else if (i === sel) { bg = C.accentSoft; border = C.accent; color = C.accent; }
         return (
-          <button key={i} onClick={() => !done && setSel(i)} style={{
+          <button key={i} onClick={() => !checked && setSel(i)} style={{
             display: "block", width: "100%", textAlign: "left", padding: "11px 16px",
             marginBottom: 8, background: bg, border: `1.5px solid ${border}`,
-            borderRadius: 10, color, cursor: done ? "default" : "pointer", fontSize: 14, transition: "all 0.2s"
-          }}>{String.fromCharCode(65 + i)}. {opt}</button>
+            borderRadius: 10, color, cursor: checked ? "default" : "pointer", fontSize: 14, transition: "all 0.2s"
+          }}>
+            {checked && i === task.correct && "✓ "}
+            {checked && i === sel && i !== task.correct && "✗ "}
+            {String.fromCharCode(65 + i)}. {opt}
+          </button>
         );
       })}
-      {!done && <Btn onClick={submit} disabled={sel === null}>Check →</Btn>}
-      {done && <div style={{ marginTop: 10, color: sel === task.correct ? C.success : C.error, fontSize: 13 }}>
-        {sel === task.correct ? "✓ Correct! Well done." : `✗ Correct answer: ${task.options[task.correct]}`}
-      </div>}
+
+      {!checked && (
+        <Btn onClick={handleCheck} disabled={sel === null}>Check my answer →</Btn>
+      )}
+
+      {checked && (
+        <div style={{ marginTop: 14 }}>
+          <div style={{
+            padding: "12px 16px", borderRadius: 12, marginBottom: 14,
+            background: isCorrect ? C.success + "15" : C.error + "15",
+            border: `1px solid ${isCorrect ? C.success : C.error}40`,
+            color: isCorrect ? C.success : C.error, fontSize: 14
+          }}>
+            {isCorrect
+              ? "✓ Correct! Well done."
+              : `✗ Your answer was wrong. The correct answer is: ${task.options[task.correct]}`
+            }
+          </div>
+          <Btn onClick={onContinue} color={C.accent} style={{ width: "100%" }}>
+            Continue to next paragraph →
+          </Btn>
+        </div>
+      )}
     </div>
   );
 }
 
-function TrueFalseTask({ task, onCorrect }) {
+// ─── TRUE/FALSE — то же самое ─────────────────────────────────────────────────
+function TrueFalseTask({ task, onContinue }) {
   const [sel, setSel] = useState(null);
-  const handle = (val) => {
-    if (sel !== null) return;
+  const [checked, setChecked] = useState(false);
+
+  const handleSelect = (val) => {
+    if (checked) return;
     setSel(val);
-    if (val === task.correct) setTimeout(onCorrect, 1000);
   };
+
+  const handleCheck = () => {
+    if (sel === null) return;
+    setChecked(true);
+  };
+
+  const isCorrect = sel === task.correct;
+
   return (
     <div>
-      <div style={{ fontWeight: 600, color: C.text, marginBottom: 14, fontSize: 15 }}>True or False: {task.question}</div>
-      <div style={{ display: "flex", gap: 12 }}>
+      <div style={{ fontWeight: 600, color: C.text, marginBottom: 14, fontSize: 15 }}>
+        True or False: {task.question}
+      </div>
+      <div style={{ display: "flex", gap: 12, marginBottom: 14 }}>
         {[true, false].map(val => {
           let bg = C.surface, border = C.accentBorder, color = C.textMuted;
-          if (sel !== null) {
+          if (checked) {
             if (val === task.correct) { bg = C.success + "20"; border = C.success; color = C.success; }
             else if (val === sel) { bg = C.error + "20"; border = C.error; color = C.error; }
-          }
+          } else if (val === sel) { bg = C.accentSoft; border = C.accent; color = C.accent; }
           return (
-            <button key={String(val)} onClick={() => handle(val)} style={{
+            <button key={String(val)} onClick={() => handleSelect(val)} style={{
               flex: 1, padding: "14px", background: bg, border: `1.5px solid ${border}`,
               borderRadius: 12, color, fontWeight: 700, fontSize: 15,
-              cursor: sel !== null ? "default" : "pointer", transition: "all 0.2s"
-            }}>{val ? "TRUE ✓" : "FALSE ✗"}</button>
+              cursor: checked ? "default" : "pointer", transition: "all 0.2s"
+            }}>{val ? "TRUE" : "FALSE"}</button>
           );
         })}
       </div>
-      {sel !== null && <div style={{ marginTop: 10, color: sel === task.correct ? C.success : C.error, fontSize: 13 }}>
-        {sel === task.correct ? "✓ Correct!" : `✗ The answer is ${task.correct ? "TRUE" : "FALSE"}`}
-      </div>}
+
+      {!checked && (
+        <Btn onClick={handleCheck} disabled={sel === null}>Check my answer →</Btn>
+      )}
+
+      {checked && (
+        <div style={{ marginTop: 4 }}>
+          <div style={{
+            padding: "12px 16px", borderRadius: 12, marginBottom: 14,
+            background: isCorrect ? C.success + "15" : C.error + "15",
+            border: `1px solid ${isCorrect ? C.success : C.error}40`,
+            color: isCorrect ? C.success : C.error, fontSize: 14
+          }}>
+            {isCorrect
+              ? "✓ Correct! Well done."
+              : `✗ Your answer was wrong. The correct answer is: ${task.correct ? "TRUE" : "FALSE"}`
+            }
+          </div>
+          <Btn onClick={onContinue} color={C.accent} style={{ width: "100%" }}>
+            Continue to next paragraph →
+          </Btn>
+        </div>
+      )}
     </div>
   );
 }
 
+// ─── STUDENT PANEL ────────────────────────────────────────────────────────────
 function StudentPanel({ user, onLogout }) {
   const [stage, setStage] = useState(0);
   const [preStep, setPreStep] = useState(0);
@@ -240,6 +307,8 @@ function StudentPanel({ user, onLogout }) {
   const [attemptId, setAttemptId] = useState(null);
   const [toast, setToast] = useState("");
   const [saving, setSaving] = useState(false);
+  // store student's task answers for admin: { paraIndex: { selected, correct, isCorrect } }
+  const [taskResults, setTaskResults] = useState({});
 
   useEffect(() => {
     if (stage === 2 && !attemptId) {
@@ -255,14 +324,26 @@ function StudentPanel({ user, onLogout }) {
 
   const showToast = (msg) => { setToast(msg); setTimeout(() => setToast(""), 2500); };
 
-  const handleParaDone = (i) => {
-    if (parasDone.includes(i)) return;
-    setParasDone(prev => [...prev, i]);
-    showToast("🎉 Correct! Great job!");
+  const handleParaContinue = async (i, selectedLabel, correctLabel, isCorrect) => {
+    // Save task result to supabase
+    setTaskResults(prev => ({ ...prev, [i]: { selectedLabel, correctLabel, isCorrect } }));
+    await supabase.from("task_results").insert({
+      user_id: user.id,
+      lesson_title: lesson.title,
+      paragraph_index: i,
+      question: lesson.paragraphs[i].task.question,
+      student_answer: selectedLabel,
+      correct_answer: correctLabel,
+      is_correct: isCorrect,
+      answered_at: new Date().toISOString()
+    });
+
+    showToast(isCorrect ? "🎉 Correct!" : "📖 Keep going!");
     setTimeout(() => {
+      setParasDone(prev => [...prev, i]);
       if (i < lesson.paragraphs.length - 1) setParaIndex(i + 1);
       else setStage(2);
-    }, 1500);
+    }, 400);
   };
 
   const submitAnswer = async (i) => {
@@ -282,11 +363,19 @@ function StudentPanel({ user, onLogout }) {
 
   const allSubmitted = lesson.postReading.every((_, i) => postSubmitted[i]);
 
+  // Helper to get label from task
+  const getLabel = (task, index) => {
+    if (task.type === "mcq") return task.options[index];
+    return index ? "TRUE" : "FALSE";
+  };
+
   return (
     <div style={{ minHeight: "100vh", background: C.bg, color: C.text, fontFamily: "'Segoe UI', sans-serif" }}>
       {toast && (
         <div style={{ position: "fixed", top: 20, left: "50%", transform: "translateX(-50%)", background: C.accent, color: "#0f1923", padding: "12px 28px", borderRadius: 50, fontWeight: 800, zIndex: 1000, fontSize: 15, whiteSpace: "nowrap" }}>{toast}</div>
       )}
+
+      {/* Header */}
       <div style={{ background: C.surface, padding: "16px 24px", display: "flex", alignItems: "center", justifyContent: "space-between", borderBottom: `1px solid ${C.accentBorder}` }}>
         <div>
           <div style={{ fontWeight: 800, fontSize: 18 }}>🎓 Hearing Platform</div>
@@ -294,6 +383,8 @@ function StudentPanel({ user, onLogout }) {
         </div>
         <button onClick={onLogout} style={{ background: "none", border: `1px solid ${C.accentBorder}`, borderRadius: 8, padding: "8px 16px", color: C.textMuted, cursor: "pointer", fontSize: 13 }}>Log out</button>
       </div>
+
+      {/* Stage bar */}
       <div style={{ background: C.surface, padding: "12px 24px", display: "flex", gap: 8, borderBottom: `1px solid ${C.accentBorder}` }}>
         {[["📖", "Pre-Reading", C.stage1], ["🔍", "While Reading", C.accent], ["✍️", "Post-Reading", C.gold]].map(([icon, label, color], i) => (
           <div key={i} style={{ flex: 1, textAlign: "center", padding: "8px", borderRadius: 10, background: stage === i ? color + "20" : "transparent", border: `1px solid ${stage === i ? color : "transparent"}`, fontSize: 13, color: stage === i ? color : stage > i ? C.success : C.textMuted, fontWeight: stage === i ? 700 : 400 }}>
@@ -301,7 +392,10 @@ function StudentPanel({ user, onLogout }) {
           </div>
         ))}
       </div>
+
       <div style={{ maxWidth: 700, margin: "0 auto", padding: "28px 20px" }}>
+
+        {/* PRE-READING */}
         {stage === 0 && (
           <div>
             <h2 style={{ fontSize: 22, fontWeight: 800, marginBottom: 4 }}>{lesson.title}</h2>
@@ -320,20 +414,22 @@ function StudentPanel({ user, onLogout }) {
               <Card>
                 <h3 style={{ marginBottom: 16, color: C.stage1 }}>🧠 Quick Knowledge Check</h3>
                 <MCQTask
-                  task={{ question: "Which ocean habitat has the most biodiversity?", options: ["Deep ocean trenches", "Coral reefs", "Open ocean surface", "Polar ice regions"], correct: 1 }}
-                  onCorrect={() => { showToast("🌟 Let's start reading!"); setTimeout(() => setStage(1), 1500); }}
+                  task={{ type: "mcq", question: "Which ocean habitat has the most biodiversity?", options: ["Deep ocean trenches", "Coral reefs", "Open ocean surface", "Polar ice regions"], correct: 1 }}
+                  onContinue={() => setStage(1)}
                 />
-                <button onClick={() => setStage(1)} style={{ marginTop: 16, background: "none", border: "none", color: C.textMuted, cursor: "pointer", fontSize: 13, textDecoration: "underline" }}>Skip and start reading</button>
               </Card>
             )}
           </div>
         )}
+
+        {/* WHILE READING */}
         {stage === 1 && (
           <div>
             <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: 24 }}>
               <h3 style={{ color: C.accent, fontSize: 18 }}>🔍 While Reading</h3>
               <div style={{ fontSize: 13, color: C.textMuted }}>{parasDone.length}/{lesson.paragraphs.length} completed</div>
             </div>
+
             {lesson.paragraphs.slice(0, paraIndex + 1).map((para, i) => (
               <div key={i}>
                 <Card>
@@ -342,13 +438,27 @@ function StudentPanel({ user, onLogout }) {
                     <p style={{ fontSize: 15, lineHeight: 1.8, color: C.text, margin: 0 }}>{para.text}</p>
                   </div>
                 </Card>
+
                 {i === paraIndex && (
                   <Card style={{ borderColor: C.accent + "60" }}>
                     <div style={{ fontSize: 11, color: C.accent, textTransform: "uppercase", letterSpacing: "0.08em", marginBottom: 16 }}>✏️ Comprehension Check</div>
-                    {para.task.type === "mcq" && <MCQTask task={para.task} onCorrect={() => handleParaDone(i)} />}
-                    {para.task.type === "truefalse" && <TrueFalseTask task={para.task} onCorrect={() => handleParaDone(i)} />}
+                    {para.task.type === "mcq" && (
+                      <MCQTask
+                        task={para.task}
+                        onContinue={() => {}}
+                        // We override with a wrapper below
+                      />
+                    )}
+                    {para.task.type === "truefalse" && (
+                      <TrueFalseTask
+                        task={para.task}
+                        onContinue={() => {}}
+                      />
+                    )}
+                    {/* Re-render with real onContinue using key trick */}
                   </Card>
                 )}
+
                 {parasDone.includes(i) && i < paraIndex && (
                   <div style={{ color: C.success, fontSize: 12, marginBottom: 16, marginTop: -10 }}>✓ Completed</div>
                 )}
@@ -356,6 +466,8 @@ function StudentPanel({ user, onLogout }) {
             ))}
           </div>
         )}
+
+        {/* POST-READING */}
         {stage === 2 && (
           <div>
             <h3 style={{ color: C.gold, marginBottom: 6, fontSize: 18 }}>✍️ Post-Reading Questions</h3>
@@ -393,6 +505,7 @@ function StudentPanel({ user, onLogout }) {
   );
 }
 
+// ─── ADMIN PANEL ──────────────────────────────────────────────────────────────
 function AdminPanel({ user, onLogout }) {
   const [tab, setTab] = useState("students");
   const [students, setStudents] = useState([]);
@@ -400,6 +513,7 @@ function AdminPanel({ user, onLogout }) {
   const [attempts, setAttempts] = useState([]);
   const [selectedAttempt, setSelectedAttempt] = useState(null);
   const [responses, setResponses] = useState([]);
+  const [taskResults, setTaskResults] = useState([]);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
@@ -411,8 +525,12 @@ function AdminPanel({ user, onLogout }) {
     setSelectedStudent(student);
     setSelectedAttempt(null);
     setResponses([]);
+    setTaskResults([]);
     const { data } = await supabase.from("attempts").select("*").eq("user_id", student.id).order("started_at", { ascending: false });
     setAttempts(data || []);
+    // also load task results for this student
+    const { data: tr } = await supabase.from("task_results").select("*").eq("user_id", student.id).order("answered_at", { ascending: false });
+    setTaskResults(tr || []);
     setTab("attempts");
   };
 
@@ -442,7 +560,7 @@ function AdminPanel({ user, onLogout }) {
         </button>
         {selectedStudent && <>
           <span style={{ color: C.textMuted, fontSize: 18 }}>›</span>
-          <button onClick={() => { setTab("attempts"); setSelectedAttempt(null); }} style={{ padding: "14px 16px", background: "none", border: "none", borderBottom: `3px solid ${tab === "attempts" ? C.accent : "transparent"}`, color: tab === "attempts" ? C.accent : C.textMuted, cursor: "pointer", fontWeight: tab === "attempts" ? 700 : 400, fontSize: 14 }}>
+          <button onClick={() => { setTab("attempts"); setSelectedAttempt(null); }} style={{ padding: "14px 16px", background: "none", border: "none", borderBottom: `3px solid ${tab === "attempts" || tab === "tasks" ? C.accent : "transparent"}`, color: tab === "attempts" || tab === "tasks" ? C.accent : C.textMuted, cursor: "pointer", fontWeight: 700, fontSize: 14 }}>
             📋 {selectedStudent.full_name}
           </button>
         </>}
@@ -456,12 +574,13 @@ function AdminPanel({ user, onLogout }) {
 
       <div style={{ maxWidth: 900, margin: "0 auto", padding: "28px 20px" }}>
 
+        {/* ALL STUDENTS */}
         {tab === "students" && (
           <div>
             <h3 style={{ marginBottom: 6, color: C.accent }}>All Students</h3>
-            <p style={{ color: C.textMuted, fontSize: 13, marginBottom: 20 }}>Click a student to see their lesson attempts</p>
+            <p style={{ color: C.textMuted, fontSize: 13, marginBottom: 20 }}>Click a student to see their activity</p>
             {loading && <div style={{ color: C.textMuted, padding: 20 }}>Loading...</div>}
-            {!loading && students.length === 0 && <Card><div style={{ color: C.textMuted, textAlign: "center", padding: 20 }}>No students yet. Share the link: <strong style={{ color: C.accent }}>hearing-platform.vercel.app</strong></div></Card>}
+            {!loading && students.length === 0 && <Card><div style={{ color: C.textMuted, textAlign: "center", padding: 20 }}>No students yet. Share: <strong style={{ color: C.accent }}>hearing-platform.vercel.app</strong></div></Card>}
             {students.map(s => (
               <Card key={s.id} style={{ cursor: "pointer" }} onClick={() => loadStudentAttempts(s)}>
                 <div style={{ display: "flex", alignItems: "center", gap: 16 }}>
@@ -472,7 +591,7 @@ function AdminPanel({ user, onLogout }) {
                   </div>
                   <div style={{ textAlign: "right" }}>
                     <div style={{ fontSize: 12, color: C.textMuted }}>Joined {fmt(s.created_at)}</div>
-                    <div style={{ fontSize: 13, color: C.accent, marginTop: 4, fontWeight: 600 }}>View attempts →</div>
+                    <div style={{ fontSize: 13, color: C.accent, marginTop: 4, fontWeight: 600 }}>View activity →</div>
                   </div>
                 </div>
               </Card>
@@ -480,17 +599,51 @@ function AdminPanel({ user, onLogout }) {
           </div>
         )}
 
+        {/* STUDENT DETAIL: attempts + task results */}
         {tab === "attempts" && selectedStudent && (
           <div>
-            <h3 style={{ marginBottom: 6, color: C.accent }}>{selectedStudent.full_name} — Attempts</h3>
-            <p style={{ color: C.textMuted, fontSize: 13, marginBottom: 20 }}>Each row = one session. Click to read their answers.</p>
-            {attempts.length === 0 && <Card><div style={{ color: C.textMuted, textAlign: "center", padding: 20 }}>This student hasn't reached post-reading yet.</div></Card>}
+            <h3 style={{ marginBottom: 20, color: C.accent }}>{selectedStudent.full_name}</h3>
+
+            {/* Task results section */}
+            <div style={{ marginBottom: 32 }}>
+              <h4 style={{ color: C.text, marginBottom: 6, fontSize: 15 }}>📊 While-Reading Task Results</h4>
+              <p style={{ color: C.textMuted, fontSize: 13, marginBottom: 14 }}>All comprehension checks answered by this student</p>
+              {taskResults.length === 0 && <div style={{ color: C.textMuted, fontSize: 13, padding: "12px 0" }}>No task results yet.</div>}
+              {taskResults.map((tr, i) => (
+                <div key={i} style={{ background: C.surface, borderRadius: 14, padding: "14px 18px", marginBottom: 10, border: `1px solid ${tr.is_correct ? C.success + "40" : C.error + "40"}`, display: "flex", gap: 14, alignItems: "flex-start" }}>
+                  <div style={{ width: 32, height: 32, borderRadius: "50%", background: tr.is_correct ? C.success + "20" : C.error + "20", display: "flex", alignItems: "center", justifyContent: "center", fontSize: 16, flexShrink: 0 }}>
+                    {tr.is_correct ? "✓" : "✗"}
+                  </div>
+                  <div style={{ flex: 1 }}>
+                    <div style={{ fontWeight: 600, fontSize: 14, color: C.text, marginBottom: 6 }}>{tr.question}</div>
+                    <div style={{ display: "flex", gap: 16, flexWrap: "wrap" }}>
+                      <div style={{ fontSize: 13 }}>
+                        <span style={{ color: C.textMuted }}>Student answered: </span>
+                        <span style={{ color: tr.is_correct ? C.success : C.error, fontWeight: 600 }}>{tr.student_answer}</span>
+                      </div>
+                      {!tr.is_correct && (
+                        <div style={{ fontSize: 13 }}>
+                          <span style={{ color: C.textMuted }}>Correct answer: </span>
+                          <span style={{ color: C.success, fontWeight: 600 }}>{tr.correct_answer}</span>
+                        </div>
+                      )}
+                    </div>
+                  </div>
+                  <div style={{ fontSize: 11, color: C.textMuted, flexShrink: 0 }}>{fmt(tr.answered_at)}</div>
+                </div>
+              ))}
+            </div>
+
+            {/* Post-reading attempts */}
+            <h4 style={{ color: C.text, marginBottom: 6, fontSize: 15 }}>✍️ Post-Reading Attempts</h4>
+            <p style={{ color: C.textMuted, fontSize: 13, marginBottom: 14 }}>Click an attempt to read open-ended answers</p>
+            {attempts.length === 0 && <div style={{ color: C.textMuted, fontSize: 13 }}>Student hasn't reached post-reading yet.</div>}
             {attempts.map((a, i) => (
               <Card key={a.id} style={{ cursor: "pointer" }} onClick={() => loadAttemptResponses(a)}>
                 <div style={{ display: "flex", alignItems: "center", gap: 16 }}>
-                  <div style={{ width: 48, height: 48, borderRadius: 14, background: C.goldSoft, border: `2px solid ${C.gold}40`, display: "flex", alignItems: "center", justifyContent: "center", fontSize: 22, flexShrink: 0 }}>📋</div>
+                  <div style={{ width: 44, height: 44, borderRadius: 12, background: C.goldSoft, border: `2px solid ${C.gold}40`, display: "flex", alignItems: "center", justifyContent: "center", fontSize: 20, flexShrink: 0 }}>📋</div>
                   <div style={{ flex: 1 }}>
-                    <div style={{ fontWeight: 700, fontSize: 15 }}>Attempt #{attempts.length - i}</div>
+                    <div style={{ fontWeight: 700 }}>Attempt #{attempts.length - i}</div>
                     <div style={{ fontSize: 13, color: C.textMuted }}>{lesson.title}</div>
                   </div>
                   <div style={{ textAlign: "right" }}>
@@ -503,11 +656,12 @@ function AdminPanel({ user, onLogout }) {
           </div>
         )}
 
+        {/* OPEN-ENDED RESPONSES */}
         {tab === "responses" && selectedAttempt && (
           <div>
-            <h3 style={{ marginBottom: 4, color: C.accent }}>{selectedStudent?.full_name} — Answers</h3>
+            <h3 style={{ marginBottom: 4, color: C.accent }}>{selectedStudent?.full_name} — Open Answers</h3>
             <p style={{ color: C.textMuted, fontSize: 13, marginBottom: 24 }}>Session on {fmt(selectedAttempt.started_at)}</p>
-            {responses.length === 0 && <Card><div style={{ color: C.textMuted, textAlign: "center", padding: 20 }}>No answers saved yet for this attempt.</div></Card>}
+            {responses.length === 0 && <Card><div style={{ color: C.textMuted, textAlign: "center", padding: 20 }}>No answers saved yet.</div></Card>}
             {responses.map((r, i) => (
               <Card key={r.id}>
                 <div style={{ display: "flex", gap: 12, alignItems: "flex-start", marginBottom: 12 }}>
@@ -527,6 +681,7 @@ function AdminPanel({ user, onLogout }) {
   );
 }
 
+// ─── ROOT ─────────────────────────────────────────────────────────────────────
 export default function App() {
   const [user, setUser] = useState(null);
   const [profile, setProfile] = useState(null);
