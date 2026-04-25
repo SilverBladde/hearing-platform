@@ -27,8 +27,6 @@ const lesson = {
   ],
   preCheck: {
     type: "mcq",
-    stage: "pre",
-    label: "Pre-Reading Check",
     question: "Which ocean habitat has the most biodiversity?",
     options: ["Deep ocean trenches", "Coral reefs", "Open ocean surface", "Polar ice regions"],
     correct: 1
@@ -37,17 +35,17 @@ const lesson = {
     {
       emoji: "🌍",
       text: "The ocean covers more than 70% of Earth's surface and is home to an astonishing variety of life. From the sunlit surface waters to the darkest trenches miles below, marine ecosystems support millions of species.",
-      task: { type: "mcq", stage: "while", label: "Paragraph 1", question: "How much of Earth's surface does the ocean cover?", options: ["About 50%", "About 60%", "More than 70%", "About 80%"], correct: 2 }
+      task: { type: "mcq", label: "Paragraph 1", question: "How much of Earth's surface does the ocean cover?", options: ["About 50%", "About 60%", "More than 70%", "About 80%"], correct: 2 }
     },
     {
       emoji: "🪸",
       text: "Coral reefs are often called the 'rainforests of the sea.' Although they cover less than 1% of the ocean floor, coral reefs are home to approximately 25% of all marine species. These reefs provide shelter, food, and nursery grounds for countless creatures.",
-      task: { type: "truefalse", stage: "while", label: "Paragraph 2", question: "Coral reefs cover more than 50% of the ocean floor.", correct: false }
+      task: { type: "truefalse", label: "Paragraph 2", question: "Coral reefs cover more than 50% of the ocean floor.", correct: false }
     },
     {
       emoji: "🔬",
       text: "Phytoplankton are microscopic plants floating near the ocean's surface. Using sunlight, water, and carbon dioxide, they perform photosynthesis — producing oxygen and forming the base of the marine food web. Phytoplankton produce about half of all the oxygen on Earth!",
-      task: { type: "mcq", stage: "while", label: "Paragraph 3", question: "What percentage of Earth's oxygen do phytoplankton produce?", options: ["10%", "25%", "About half", "75%"], correct: 2 }
+      task: { type: "mcq", label: "Paragraph 3", question: "What percentage of Earth's oxygen do phytoplankton produce?", options: ["10%", "25%", "About half", "75%"], correct: 2 }
     },
   ],
   postReading: [
@@ -57,12 +55,10 @@ const lesson = {
   ]
 };
 
-// ─── HELPERS ──────────────────────────────────────────────────────────────────
 function Btn({ children, onClick, color = C.accent, disabled = false, style = {} }) {
   return (
     <button onClick={onClick} disabled={disabled} style={{
-      background: disabled ? C.card : color,
-      color: disabled ? C.textMuted : "#0f1923",
+      background: disabled ? C.card : color, color: disabled ? C.textMuted : "#0f1923",
       border: "none", borderRadius: 12, padding: "12px 24px",
       fontFamily: "'Segoe UI', sans-serif", fontWeight: 700, fontSize: 14,
       cursor: disabled ? "default" : "pointer", transition: "all 0.2s ease", ...style
@@ -75,21 +71,14 @@ function Input({ label, type = "text", value, onChange, placeholder }) {
     <div style={{ marginBottom: 16 }}>
       {label && <div style={{ fontSize: 13, color: C.textMuted, marginBottom: 6 }}>{label}</div>}
       <input type={type} value={value} onChange={e => onChange(e.target.value)} placeholder={placeholder}
-        style={{
-          width: "100%", background: C.surface, border: `1.5px solid ${C.accentBorder}`,
-          borderRadius: 10, padding: "12px 14px", color: C.text,
-          fontFamily: "'Segoe UI', sans-serif", fontSize: 14, outline: "none", boxSizing: "border-box"
-        }} />
+        style={{ width: "100%", background: C.surface, border: `1.5px solid ${C.accentBorder}`, borderRadius: 10, padding: "12px 14px", color: C.text, fontFamily: "'Segoe UI', sans-serif", fontSize: 14, outline: "none", boxSizing: "border-box" }} />
     </div>
   );
 }
 
 function Card({ children, style = {}, onClick }) {
   return (
-    <div onClick={onClick} style={{
-      background: C.card, borderRadius: 20, padding: 24,
-      border: `1px solid ${C.accentBorder}`, marginBottom: 20, ...style
-    }}>{children}</div>
+    <div onClick={onClick} style={{ background: C.card, borderRadius: 20, padding: 24, border: `1px solid ${C.accentBorder}`, marginBottom: 20, ...style }}>{children}</div>
   );
 }
 
@@ -114,12 +103,7 @@ function AuthScreen({ onLogin }) {
     setLoading(true); setMsg("");
     const { data, error } = await supabase.auth.signUp({ email, password, options: { data: { full_name: name } } });
     if (error) { setMsg("❌ " + error.message); setLoading(false); return; }
-    if (data.user) {
-      await supabase.from("profiles").upsert({
-        id: data.user.id, full_name: name, email,
-        role: email === ADMIN_EMAIL ? "admin" : "student"
-      });
-    }
+    if (data.user) await supabase.from("profiles").upsert({ id: data.user.id, full_name: name, email, role: email === ADMIN_EMAIL ? "admin" : "student" });
     setMsg("✅ Registered! Now log in."); setMode("login"); setLoading(false);
   };
 
@@ -134,20 +118,13 @@ function AuthScreen({ onLogin }) {
         <Card>
           <div style={{ display: "flex", marginBottom: 24, background: C.surface, borderRadius: 10, padding: 4 }}>
             {["login", "register"].map(m => (
-              <button key={m} onClick={() => setMode(m)} style={{
-                flex: 1, padding: "10px", border: "none", borderRadius: 8,
-                background: mode === m ? C.accent : "transparent",
-                color: mode === m ? "#0f1923" : C.textMuted,
-                fontWeight: 700, cursor: "pointer", fontSize: 14, transition: "all 0.2s"
-              }}>{m === "login" ? "Log In" : "Register"}</button>
+              <button key={m} onClick={() => setMode(m)} style={{ flex: 1, padding: "10px", border: "none", borderRadius: 8, background: mode === m ? C.accent : "transparent", color: mode === m ? "#0f1923" : C.textMuted, fontWeight: 700, cursor: "pointer", fontSize: 14, transition: "all 0.2s" }}>{m === "login" ? "Log In" : "Register"}</button>
             ))}
           </div>
           {mode === "register" && <Input label="Full Name" value={name} onChange={setName} placeholder="Your name" />}
           <Input label="Email" type="email" value={email} onChange={setEmail} placeholder="you@email.com" />
           <Input label="Password" type="password" value={password} onChange={setPassword} placeholder="••••••••" />
-          {msg && (
-            <div style={{ marginBottom: 14, padding: "10px 14px", borderRadius: 10, background: msg.startsWith("✅") ? C.success + "20" : C.error + "20", color: msg.startsWith("✅") ? C.success : C.error, fontSize: 13 }}>{msg}</div>
-          )}
+          {msg && <div style={{ marginBottom: 14, padding: "10px 14px", borderRadius: 10, background: msg.startsWith("✅") ? C.success + "20" : C.error + "20", color: msg.startsWith("✅") ? C.success : C.error, fontSize: 13 }}>{msg}</div>}
           <Btn onClick={mode === "login" ? handleLogin : handleRegister} disabled={loading} style={{ width: "100%" }}>
             {loading ? "Please wait..." : mode === "login" ? "Log In →" : "Create Account →"}
           </Btn>
@@ -181,7 +158,6 @@ function MCQTaskWithCapture({ task, onContinue }) {
   const [sel, setSel] = useState(null);
   const [checked, setChecked] = useState(false);
   const isCorrect = sel === task.correct;
-
   return (
     <div>
       <div style={{ fontWeight: 600, color: C.text, marginBottom: 14, fontSize: 15 }}>{task.question}</div>
@@ -192,15 +168,8 @@ function MCQTaskWithCapture({ task, onContinue }) {
           else if (i === sel) { bg = C.error + "20"; border = C.error; color = C.error; }
         } else if (i === sel) { bg = C.accentSoft; border = C.accent; color = C.accent; }
         return (
-          <button key={i} onClick={() => !checked && setSel(i)} style={{
-            display: "block", width: "100%", textAlign: "left", padding: "11px 16px", marginBottom: 8,
-            background: bg, border: `1.5px solid ${border}`, borderRadius: 10, color,
-            cursor: checked ? "default" : "pointer", fontSize: 14, transition: "all 0.2s",
-            fontFamily: "'Segoe UI', sans-serif"
-          }}>
-            {checked && i === task.correct ? "✓ " : ""}
-            {checked && i === sel && i !== task.correct ? "✗ " : ""}
-            {String.fromCharCode(65 + i)}. {opt}
+          <button key={i} onClick={() => !checked && setSel(i)} style={{ display: "block", width: "100%", textAlign: "left", padding: "11px 16px", marginBottom: 8, background: bg, border: `1.5px solid ${border}`, borderRadius: 10, color, cursor: checked ? "default" : "pointer", fontSize: 14, transition: "all 0.2s", fontFamily: "'Segoe UI', sans-serif" }}>
+            {checked && i === task.correct ? "✓ " : ""}{checked && i === sel && i !== task.correct ? "✗ " : ""}{String.fromCharCode(65 + i)}. {opt}
           </button>
         );
       })}
@@ -221,7 +190,6 @@ function TrueFalseTaskWithCapture({ task, onContinue }) {
   const [sel, setSel] = useState(null);
   const [checked, setChecked] = useState(false);
   const isCorrect = sel === task.correct;
-
   return (
     <div>
       <div style={{ fontWeight: 600, color: C.text, marginBottom: 14, fontSize: 15 }}>True or False: {task.question}</div>
@@ -232,13 +200,7 @@ function TrueFalseTaskWithCapture({ task, onContinue }) {
             if (val === task.correct) { bg = C.success + "20"; border = C.success; color = C.success; }
             else if (val === sel) { bg = C.error + "20"; border = C.error; color = C.error; }
           } else if (val === sel) { bg = C.accentSoft; border = C.accent; color = C.accent; }
-          return (
-            <button key={String(val)} onClick={() => !checked && setSel(val)} style={{
-              flex: 1, padding: "14px", background: bg, border: `1.5px solid ${border}`,
-              borderRadius: 12, color, fontWeight: 700, fontSize: 15,
-              cursor: checked ? "default" : "pointer", transition: "all 0.2s", fontFamily: "'Segoe UI', sans-serif"
-            }}>{val ? "TRUE" : "FALSE"}</button>
-          );
+          return <button key={String(val)} onClick={() => !checked && setSel(val)} style={{ flex: 1, padding: "14px", background: bg, border: `1.5px solid ${border}`, borderRadius: 12, color, fontWeight: 700, fontSize: 15, cursor: checked ? "default" : "pointer", transition: "all 0.2s", fontFamily: "'Segoe UI', sans-serif" }}>{val ? "TRUE" : "FALSE"}</button>;
         })}
       </div>
       {!checked && <Btn onClick={() => { if (sel !== null) setChecked(true); }} disabled={sel === null}>Check my answer →</Btn>}
@@ -266,29 +228,26 @@ function StudentPanel({ user, onLogout }) {
   const [toast, setToast] = useState("");
   const [saving, setSaving] = useState(false);
 
-  // Create attempt when entering post-reading
+  // Create attempt at the very start (stage 0) so all tasks link to it
   useEffect(() => {
-    if (stage === 2 && !attemptId) {
-      supabase.from("attempts").insert({
+    const createAttempt = async () => {
+      const { data } = await supabase.from("attempts").insert({
         user_id: user.id, lesson_title: lesson.title, started_at: new Date().toISOString()
-      }).select().single().then(({ data }) => { if (data) setAttemptId(data.id); });
-    }
-  }, [stage]);
+      }).select().single();
+      if (data) setAttemptId(data.id);
+    };
+    createAttempt();
+  }, []);
 
   const showToast = (msg) => { setToast(msg); setTimeout(() => setToast(""), 2000); };
 
-  // Save any task result (pre or while) with user_id
-  const saveTaskResult = async (stageLabel, taskLabel, question, studentAnswer, correctAnswer, isCorrect) => {
+  const saveTaskResult = async (stage, taskLabel, question, studentAnswer, correctAnswer, isCorrect) => {
+    if (!attemptId) return;
     await supabase.from("task_results").insert({
-      user_id: user.id,
-      lesson_title: lesson.title,
-      stage: stageLabel,
-      task_label: taskLabel,
-      question,
-      student_answer: studentAnswer,
-      correct_answer: correctAnswer,
-      is_correct: isCorrect,
-      answered_at: new Date().toISOString()
+      user_id: user.id, attempt_id: attemptId, lesson_title: lesson.title,
+      stage, task_label: taskLabel, question,
+      student_answer: studentAnswer, correct_answer: correctAnswer,
+      is_correct: isCorrect, answered_at: new Date().toISOString()
     });
   };
 
@@ -310,8 +269,7 @@ function StudentPanel({ user, onLogout }) {
     if (!postAnswers[i]?.trim() || !attemptId) return;
     setSaving(true);
     await supabase.from("student_responses").insert({
-      user_id: user.id,
-      attempt_id: attemptId,
+      user_id: user.id, attempt_id: attemptId,
       question_id: lesson.postReading[i].id,
       question: lesson.postReading[i].question,
       answer: postAnswers[i],
@@ -325,9 +283,7 @@ function StudentPanel({ user, onLogout }) {
 
   return (
     <div style={{ minHeight: "100vh", background: C.bg, color: C.text, fontFamily: "'Segoe UI', sans-serif" }}>
-      {toast && (
-        <div style={{ position: "fixed", top: 20, left: "50%", transform: "translateX(-50%)", background: C.accent, color: "#0f1923", padding: "12px 28px", borderRadius: 50, fontWeight: 800, zIndex: 1000, fontSize: 15, whiteSpace: "nowrap" }}>{toast}</div>
-      )}
+      {toast && <div style={{ position: "fixed", top: 20, left: "50%", transform: "translateX(-50%)", background: C.accent, color: "#0f1923", padding: "12px 28px", borderRadius: 50, fontWeight: 800, zIndex: 1000, fontSize: 15, whiteSpace: "nowrap" }}>{toast}</div>}
 
       <div style={{ background: C.surface, padding: "16px 24px", display: "flex", alignItems: "center", justifyContent: "space-between", borderBottom: `1px solid ${C.accentBorder}` }}>
         <div>
@@ -347,7 +303,6 @@ function StudentPanel({ user, onLogout }) {
 
       <div style={{ maxWidth: 700, margin: "0 auto", padding: "28px 20px" }}>
 
-        {/* PRE-READING */}
         {stage === 0 && (
           <div>
             <h2 style={{ fontSize: 22, fontWeight: 800, marginBottom: 4 }}>{lesson.title}</h2>
@@ -365,18 +320,12 @@ function StudentPanel({ user, onLogout }) {
             {preStep === 1 && (
               <Card>
                 <h3 style={{ marginBottom: 16, color: C.stage1 }}>🧠 Quick Knowledge Check</h3>
-                <MCQTaskWithCapture
-                  task={lesson.preCheck}
-                  onContinue={(studentAnswer, correctAnswer, isCorrect) =>
-                    handlePreCheckContinue(studentAnswer, correctAnswer, isCorrect)
-                  }
-                />
+                <MCQTaskWithCapture task={lesson.preCheck} onContinue={handlePreCheckContinue} />
               </Card>
             )}
           </div>
         )}
 
-        {/* WHILE READING */}
         {stage === 1 && (
           <div>
             <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: 24 }}>
@@ -398,18 +347,8 @@ function StudentPanel({ user, onLogout }) {
                   {isActive && (
                     <Card style={{ borderColor: C.accent + "60" }}>
                       <div style={{ fontSize: 11, color: C.accent, textTransform: "uppercase", letterSpacing: "0.08em", marginBottom: 16 }}>✏️ Comprehension Check</div>
-                      {para.task.type === "mcq" && (
-                        <MCQTaskWithCapture
-                          task={para.task}
-                          onContinue={(sa, ca, ic) => handleParaContinue(i, sa, ca, ic)}
-                        />
-                      )}
-                      {para.task.type === "truefalse" && (
-                        <TrueFalseTaskWithCapture
-                          task={para.task}
-                          onContinue={(sa, ca, ic) => handleParaContinue(i, sa, ca, ic)}
-                        />
-                      )}
+                      {para.task.type === "mcq" && <MCQTaskWithCapture task={para.task} onContinue={(sa, ca, ic) => handleParaContinue(i, sa, ca, ic)} />}
+                      {para.task.type === "truefalse" && <TrueFalseTaskWithCapture task={para.task} onContinue={(sa, ca, ic) => handleParaContinue(i, sa, ca, ic)} />}
                     </Card>
                   )}
                   {isDone && <div style={{ color: C.success, fontSize: 12, marginBottom: 16, marginTop: -10 }}>✓ Completed</div>}
@@ -419,7 +358,6 @@ function StudentPanel({ user, onLogout }) {
           </div>
         )}
 
-        {/* POST-READING */}
         {stage === 2 && (
           <div>
             <h3 style={{ color: C.gold, marginBottom: 6, fontSize: 18 }}>✍️ Post-Reading Questions</h3>
@@ -434,13 +372,10 @@ function StudentPanel({ user, onLogout }) {
                 <textarea value={postAnswers[i] || ""} onChange={e => setPostAnswers(p => ({ ...p, [i]: e.target.value }))} disabled={postSubmitted[i]}
                   placeholder="Write your answer here..."
                   style={{ width: "100%", minHeight: 100, background: C.surface, border: `1.5px solid ${postSubmitted[i] ? C.success + "60" : C.accentBorder}`, borderRadius: 10, padding: 14, color: C.text, fontFamily: "'Segoe UI', sans-serif", fontSize: 14, resize: "vertical", outline: "none", boxSizing: "border-box", lineHeight: 1.6 }} />
-                {!postSubmitted[i] ? (
-                  <Btn onClick={() => submitPostAnswer(i)} color={C.gold} disabled={saving || !postAnswers[i]?.trim()} style={{ marginTop: 12 }}>
-                    {saving ? "Saving..." : "Save Answer →"}
-                  </Btn>
-                ) : (
-                  <div style={{ marginTop: 12, color: C.success, fontSize: 13 }}>✅ Saved — your teacher will review it</div>
-                )}
+                {!postSubmitted[i]
+                  ? <Btn onClick={() => submitPostAnswer(i)} color={C.gold} disabled={saving || !postAnswers[i]?.trim()} style={{ marginTop: 12 }}>{saving ? "Saving..." : "Save Answer →"}</Btn>
+                  : <div style={{ marginTop: 12, color: C.success, fontSize: 13 }}>✅ Saved — your teacher will review it</div>
+                }
               </Card>
             ))}
             {allSubmitted && (
@@ -461,10 +396,9 @@ function StudentPanel({ user, onLogout }) {
 function AdminPanel({ user, onLogout }) {
   const [students, setStudents] = useState([]);
   const [selected, setSelected] = useState(null);
-  const [allData, setAllData] = useState(null); // { taskResults, attempts, responses }
+  const [attempts, setAttempts] = useState([]);
   const [loading, setLoading] = useState(true);
-  const [detailAttempt, setDetailAttempt] = useState(null);
-  const [detailResponses, setDetailResponses] = useState([]);
+  const [loadingStudent, setLoadingStudent] = useState(false);
 
   useEffect(() => {
     supabase.from("profiles").select("*").eq("role", "student").order("created_at", { ascending: false })
@@ -473,30 +407,37 @@ function AdminPanel({ user, onLogout }) {
 
   const loadStudent = async (student) => {
     setSelected(student);
-    setDetailAttempt(null);
-    setDetailResponses([]);
+    setAttempts([]);
+    setLoadingStudent(true);
 
-    const [{ data: taskResults }, { data: attempts }] = await Promise.all([
-      supabase.from("task_results").select("*").eq("user_id", student.id).order("answered_at", { ascending: true }),
-      supabase.from("attempts").select("*").eq("user_id", student.id).order("started_at", { ascending: false }),
-    ]);
+    // Load all attempts for this student
+    const { data: atts } = await supabase.from("attempts").select("*").eq("user_id", student.id).order("started_at", { ascending: false });
 
-    // for each attempt load responses
-    let responsesMap = {};
-    if (attempts) {
-      for (const att of attempts) {
-        const { data: resp } = await supabase.from("student_responses").select("*").eq("attempt_id", att.id).order("created_at", { ascending: true });
-        responsesMap[att.id] = resp || [];
-      }
-    }
+    if (!atts || atts.length === 0) { setAttempts([]); setLoadingStudent(false); return; }
 
-    setAllData({ taskResults: taskResults || [], attempts: attempts || [], responsesMap });
+    // For each attempt load its task_results AND student_responses
+    const enriched = await Promise.all(atts.map(async (att) => {
+      const [{ data: tasks }, { data: responses }] = await Promise.all([
+        supabase.from("task_results").select("*").eq("attempt_id", att.id).order("answered_at", { ascending: true }),
+        supabase.from("student_responses").select("*").eq("attempt_id", att.id).order("created_at", { ascending: true }),
+      ]);
+      return { ...att, tasks: tasks || [], responses: responses || [] };
+    }));
+
+    setAttempts(enriched);
+    setLoadingStudent(false);
   };
 
   const fmt = (str) => new Date(str).toLocaleString("en-GB", { day: "2-digit", month: "short", year: "numeric", hour: "2-digit", minute: "2-digit" });
 
-  const stageColor = (stage) => stage === "pre" ? C.stage1 : stage === "while" ? C.accent : C.gold;
-  const stageLabel = (stage) => stage === "pre" ? "Pre-Reading" : stage === "while" ? "While Reading" : "Post-Reading";
+  const stageColor = (s) => s === "pre" ? C.stage1 : C.accent;
+  const stageLabel = (s) => s === "pre" ? "Pre-Reading" : "While Reading";
+
+  const scoreOf = (att) => {
+    if (!att.tasks.length) return null;
+    const correct = att.tasks.filter(t => t.is_correct).length;
+    return `${correct}/${att.tasks.length}`;
+  };
 
   return (
     <div style={{ minHeight: "100vh", background: C.bg, color: C.text, fontFamily: "'Segoe UI', sans-serif" }}>
@@ -518,118 +459,111 @@ function AdminPanel({ user, onLogout }) {
           {loading && <div style={{ padding: 20, color: C.textMuted, fontSize: 13 }}>Loading...</div>}
           {!loading && students.length === 0 && <div style={{ padding: 20, color: C.textMuted, fontSize: 13 }}>No students yet.</div>}
           {students.map(s => (
-            <div key={s.id} onClick={() => loadStudent(s)} style={{
-              padding: "14px 20px", cursor: "pointer", borderBottom: `1px solid ${C.accentBorder}20`,
-              background: selected?.id === s.id ? C.accentSoft : "transparent",
-              borderLeft: `3px solid ${selected?.id === s.id ? C.accent : "transparent"}`,
-              transition: "all 0.15s"
-            }}>
+            <div key={s.id} onClick={() => loadStudent(s)} style={{ padding: "14px 20px", cursor: "pointer", borderBottom: `1px solid ${C.accentBorder}20`, background: selected?.id === s.id ? C.accentSoft : "transparent", borderLeft: `3px solid ${selected?.id === s.id ? C.accent : "transparent"}`, transition: "all 0.15s" }}>
               <div style={{ fontWeight: 600, fontSize: 14, color: C.text }}>{s.full_name}</div>
               <div style={{ fontSize: 12, color: C.textMuted, marginTop: 2 }}>{s.email}</div>
             </div>
           ))}
         </div>
 
-        {/* RIGHT: student detail */}
+        {/* RIGHT: attempts */}
         <div style={{ flex: 1, overflowY: "auto", padding: "28px 32px" }}>
           {!selected && (
             <div style={{ textAlign: "center", padding: 60, color: C.textMuted }}>
               <div style={{ fontSize: 48, marginBottom: 16 }}>👈</div>
-              <div style={{ fontSize: 16 }}>Select a student to see all their answers</div>
+              <div style={{ fontSize: 16 }}>Select a student to see their attempts</div>
             </div>
           )}
 
-          {selected && !allData && (
-            <div style={{ color: C.textMuted, padding: 20 }}>Loading...</div>
-          )}
+          {selected && loadingStudent && <div style={{ color: C.textMuted, padding: 20 }}>Loading...</div>}
 
-          {selected && allData && (
+          {selected && !loadingStudent && (
             <div>
               <div style={{ marginBottom: 28 }}>
                 <h2 style={{ fontSize: 22, fontWeight: 800, marginBottom: 4 }}>{selected.full_name}</h2>
-                <div style={{ fontSize: 13, color: C.textMuted }}>{selected.email}</div>
+                <div style={{ fontSize: 13, color: C.textMuted }}>{selected.email} · {attempts.length} attempt{attempts.length !== 1 ? "s" : ""}</div>
               </div>
 
-              {/* ── SECTION 1: Pre + While tasks ── */}
-              <h3 style={{ fontSize: 16, fontWeight: 700, color: C.text, marginBottom: 4 }}>📊 Test Answers (Pre & While Reading)</h3>
-              <p style={{ color: C.textMuted, fontSize: 13, marginBottom: 16 }}>Every multiple choice and true/false answer this student gave</p>
-
-              {allData.taskResults.length === 0 && (
-                <div style={{ color: C.textMuted, fontSize: 13, marginBottom: 28, padding: "16px", background: C.surface, borderRadius: 12 }}>No test answers yet.</div>
+              {attempts.length === 0 && (
+                <div style={{ color: C.textMuted, padding: "20px", background: C.surface, borderRadius: 16, textAlign: "center" }}>This student hasn't started the lesson yet.</div>
               )}
 
-              {allData.taskResults.map((tr, i) => (
-                <div key={i} style={{
-                  background: C.surface, borderRadius: 14, padding: "16px 20px", marginBottom: 12,
-                  border: `1px solid ${tr.is_correct ? C.success + "40" : C.error + "40"}`,
-                  display: "flex", gap: 16, alignItems: "flex-start"
-                }}>
-                  {/* Stage badge */}
-                  <div style={{ flexShrink: 0, display: "flex", flexDirection: "column", alignItems: "center", gap: 6 }}>
-                    <div style={{ width: 36, height: 36, borderRadius: "50%", background: tr.is_correct ? C.success + "20" : C.error + "20", display: "flex", alignItems: "center", justifyContent: "center", fontSize: 18, color: tr.is_correct ? C.success : C.error, fontWeight: 800 }}>
-                      {tr.is_correct ? "✓" : "✗"}
+              {attempts.map((att, ai) => (
+                <div key={att.id} style={{ background: C.surface, borderRadius: 20, marginBottom: 28, border: `1px solid ${C.accentBorder}`, overflow: "hidden" }}>
+
+                  {/* Attempt header */}
+                  <div style={{ padding: "16px 24px", background: C.card, borderBottom: `1px solid ${C.accentBorder}`, display: "flex", alignItems: "center", gap: 16 }}>
+                    <div style={{ width: 40, height: 40, borderRadius: 12, background: C.accentSoft, border: `1.5px solid ${C.accentBorder}`, display: "flex", alignItems: "center", justifyContent: "center", fontSize: 18, flexShrink: 0 }}>📋</div>
+                    <div style={{ flex: 1 }}>
+                      <div style={{ fontWeight: 800, fontSize: 16, color: C.text }}>Attempt #{attempts.length - ai}</div>
+                      <div style={{ fontSize: 12, color: C.textMuted }}>{fmt(att.started_at)}</div>
                     </div>
-                    <div style={{ fontSize: 10, padding: "2px 8px", borderRadius: 20, background: stageColor(tr.stage) + "20", color: stageColor(tr.stage), fontWeight: 700, whiteSpace: "nowrap" }}>
-                      {stageLabel(tr.stage)}
-                    </div>
+                    {scoreOf(att) && (
+                      <div style={{ textAlign: "right" }}>
+                        <div style={{ fontSize: 11, color: C.textMuted, marginBottom: 2 }}>Test score</div>
+                        <div style={{ fontSize: 20, fontWeight: 800, color: C.accent }}>{scoreOf(att)}</div>
+                      </div>
+                    )}
                   </div>
 
-                  <div style={{ flex: 1 }}>
-                    <div style={{ fontSize: 11, color: C.textMuted, marginBottom: 4 }}>{tr.task_label}</div>
-                    <div style={{ fontWeight: 600, fontSize: 14, color: C.text, marginBottom: 10 }}>{tr.question}</div>
-                    <div style={{ display: "flex", gap: 24, flexWrap: "wrap" }}>
-                      <div style={{ fontSize: 13 }}>
-                        <span style={{ color: C.textMuted }}>Student answered: </span>
-                        <span style={{ fontWeight: 700, color: tr.is_correct ? C.success : C.error }}>{tr.student_answer}</span>
+                  <div style={{ padding: "20px 24px" }}>
+
+                    {/* Pre + While task results */}
+                    {att.tasks.length > 0 && (
+                      <div style={{ marginBottom: 24 }}>
+                        <div style={{ fontSize: 12, color: C.textMuted, textTransform: "uppercase", letterSpacing: "0.08em", marginBottom: 14 }}>📊 Test Questions</div>
+                        {att.tasks.map((tr, ti) => (
+                          <div key={ti} style={{ display: "flex", gap: 14, alignItems: "flex-start", padding: "12px 16px", borderRadius: 12, marginBottom: 10, background: C.card, border: `1px solid ${tr.is_correct ? C.success + "30" : C.error + "30"}` }}>
+                            <div style={{ width: 32, height: 32, borderRadius: "50%", background: tr.is_correct ? C.success + "20" : C.error + "20", display: "flex", alignItems: "center", justifyContent: "center", fontSize: 16, color: tr.is_correct ? C.success : C.error, fontWeight: 800, flexShrink: 0 }}>
+                              {tr.is_correct ? "✓" : "✗"}
+                            </div>
+                            <div style={{ flex: 1 }}>
+                              <div style={{ display: "flex", gap: 8, alignItems: "center", marginBottom: 4 }}>
+                                <span style={{ fontSize: 10, padding: "2px 8px", borderRadius: 20, background: stageColor(tr.stage) + "25", color: stageColor(tr.stage), fontWeight: 700 }}>{stageLabel(tr.stage)}</span>
+                                <span style={{ fontSize: 11, color: C.textMuted }}>{tr.task_label}</span>
+                              </div>
+                              <div style={{ fontWeight: 600, fontSize: 14, color: C.text, marginBottom: 6 }}>{tr.question}</div>
+                              <div style={{ display: "flex", gap: 20, flexWrap: "wrap" }}>
+                                <div style={{ fontSize: 13 }}>
+                                  <span style={{ color: C.textMuted }}>Answered: </span>
+                                  <span style={{ fontWeight: 700, color: tr.is_correct ? C.success : C.error }}>{tr.student_answer}</span>
+                                </div>
+                                {!tr.is_correct && (
+                                  <div style={{ fontSize: 13 }}>
+                                    <span style={{ color: C.textMuted }}>Correct: </span>
+                                    <span style={{ fontWeight: 700, color: C.success }}>{tr.correct_answer}</span>
+                                  </div>
+                                )}
+                              </div>
+                            </div>
+                          </div>
+                        ))}
                       </div>
-                      {!tr.is_correct && (
-                        <div style={{ fontSize: 13 }}>
-                          <span style={{ color: C.textMuted }}>Correct answer: </span>
-                          <span style={{ fontWeight: 700, color: C.success }}>{tr.correct_answer}</span>
-                        </div>
-                      )}
-                    </div>
+                    )}
+
+                    {att.tasks.length === 0 && (
+                      <div style={{ fontSize: 13, color: C.textMuted, marginBottom: 20 }}>No test answers recorded for this attempt.</div>
+                    )}
+
+                    {/* Post-reading open answers */}
+                    {att.responses.length > 0 && (
+                      <div>
+                        <div style={{ fontSize: 12, color: C.textMuted, textTransform: "uppercase", letterSpacing: "0.08em", marginBottom: 14 }}>✍️ Open-Ended Answers</div>
+                        {att.responses.map((r, ri) => (
+                          <div key={ri} style={{ marginBottom: 14 }}>
+                            <div style={{ fontSize: 13, fontWeight: 600, color: C.text, marginBottom: 6 }}>Q{ri + 1}. {r.question}</div>
+                            <div style={{ background: C.card, borderRadius: 10, padding: "12px 16px", fontSize: 14, lineHeight: 1.7, color: C.text, borderLeft: `3px solid ${C.gold}` }}>{r.answer}</div>
+                          </div>
+                        ))}
+                      </div>
+                    )}
+
+                    {att.responses.length === 0 && att.tasks.length > 0 && (
+                      <div style={{ fontSize: 13, color: C.textMuted }}>Student hasn't submitted post-reading answers yet.</div>
+                    )}
                   </div>
-                  <div style={{ fontSize: 11, color: C.textMuted, flexShrink: 0, textAlign: "right" }}>{fmt(tr.answered_at)}</div>
                 </div>
               ))}
-
-              {/* ── SECTION 2: Post-reading open answers ── */}
-              <h3 style={{ fontSize: 16, fontWeight: 700, color: C.text, marginBottom: 4, marginTop: 32 }}>✍️ Post-Reading Open Answers</h3>
-              <p style={{ color: C.textMuted, fontSize: 13, marginBottom: 16 }}>Written responses — each block is one session attempt</p>
-
-              {allData.attempts.length === 0 && (
-                <div style={{ color: C.textMuted, fontSize: 13, padding: "16px", background: C.surface, borderRadius: 12 }}>Student hasn't reached post-reading yet.</div>
-              )}
-
-              {allData.attempts.map((att, ai) => {
-                const responses = allData.responsesMap[att.id] || [];
-                return (
-                  <div key={att.id} style={{ background: C.surface, borderRadius: 16, padding: "20px", marginBottom: 20, border: `1px solid ${C.gold}30` }}>
-                    <div style={{ display: "flex", alignItems: "center", gap: 12, marginBottom: 16 }}>
-                      <div style={{ width: 32, height: 32, borderRadius: 8, background: C.goldSoft, border: `1.5px solid ${C.gold}50`, display: "flex", alignItems: "center", justifyContent: "center", fontSize: 16 }}>📋</div>
-                      <div>
-                        <div style={{ fontWeight: 700, fontSize: 14, color: C.gold }}>Attempt #{allData.attempts.length - ai}</div>
-                        <div style={{ fontSize: 12, color: C.textMuted }}>{fmt(att.started_at)}</div>
-                      </div>
-                      <div style={{ marginLeft: "auto", fontSize: 12, color: C.textMuted }}>{responses.length}/{lesson.postReading.length} answered</div>
-                    </div>
-
-                    {responses.length === 0 && <div style={{ color: C.textMuted, fontSize: 13 }}>No answers saved yet.</div>}
-
-                    {responses.map((r, ri) => (
-                      <div key={r.id} style={{ marginBottom: 14 }}>
-                        <div style={{ fontSize: 13, fontWeight: 600, color: C.text, marginBottom: 6 }}>
-                          Q{ri + 1}. {r.question}
-                        </div>
-                        <div style={{ background: C.card, borderRadius: 10, padding: "12px 16px", fontSize: 14, lineHeight: 1.7, color: C.text, borderLeft: `3px solid ${C.accent}` }}>
-                          {r.answer}
-                        </div>
-                      </div>
-                    ))}
-                  </div>
-                );
-              })}
             </div>
           )}
         </div>
