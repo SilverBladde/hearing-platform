@@ -382,7 +382,8 @@ function StudentPanel({ user, onLogout }) {
               <div style={{ textAlign: "center", padding: 36, background: C.accentSoft, borderRadius: 24, border: `1px solid ${C.accentBorder}` }}>
                 <div style={{ fontSize: 52, marginBottom: 12 }}>🏆</div>
                 <div style={{ fontSize: 24, fontWeight: 800, marginBottom: 8 }}>Lesson Complete!</div>
-                <div style={{ color: C.textMuted, fontSize: 14 }}>All answers saved. Great work!</div>
+                <div style={{ color: C.textMuted, fontSize: 14, marginBottom: 24 }}>All answers saved. Great work!</div>
+                <Btn onClick={restartLesson} style={{ width: "100%" }}>🔄 Restart Lesson</Btn>
               </div>
             )}
           </div>
