@@ -171,16 +171,10 @@ function VocabCard({ item }) {
   );
 }
 
-// ─── MCQ TASK — любой ответ принимается, показываем правильный, затем Continue ─
+// ─── MCQ — любой ответ принимается, показываем правильный, потом Continue ─────
 function MCQTask({ task, onContinue }) {
   const [sel, setSel] = useState(null);
   const [checked, setChecked] = useState(false);
-
-  const handleCheck = () => {
-    if (sel === null) return;
-    setChecked(true);
-  };
-
   const isCorrect = sel === task.correct;
 
   return (
@@ -194,19 +188,22 @@ function MCQTask({ task, onContinue }) {
         } else if (i === sel) { bg = C.accentSoft; border = C.accent; color = C.accent; }
         return (
           <button key={i} onClick={() => !checked && setSel(i)} style={{
-            display: "block", width: "100%", textAlign: "left", padding: "11px 16px",
-            marginBottom: 8, background: bg, border: `1.5px solid ${border}`,
-            borderRadius: 10, color, cursor: checked ? "default" : "pointer", fontSize: 14, transition: "all 0.2s"
+            display: "block", width: "100%", textAlign: "left", padding: "11px 16px", marginBottom: 8,
+            background: bg, border: `1.5px solid ${border}`, borderRadius: 10, color,
+            cursor: checked ? "default" : "pointer", fontSize: 14, transition: "all 0.2s",
+            fontFamily: "'Segoe UI', sans-serif"
           }}>
-            {checked && i === task.correct && "✓ "}
-            {checked && i === sel && i !== task.correct && "✗ "}
+            {checked && i === task.correct ? "✓ " : ""}
+            {checked && i === sel && i !== task.correct ? "✗ " : ""}
             {String.fromCharCode(65 + i)}. {opt}
           </button>
         );
       })}
 
       {!checked && (
-        <Btn onClick={handleCheck} disabled={sel === null}>Check my answer →</Btn>
+        <Btn onClick={() => { if (sel !== null) setChecked(true); }} disabled={sel === null}>
+          Check my answer →
+        </Btn>
       )}
 
       {checked && (
@@ -219,11 +216,10 @@ function MCQTask({ task, onContinue }) {
           }}>
             {isCorrect
               ? "✓ Correct! Well done."
-              : `✗ Your answer was wrong. The correct answer is: ${task.options[task.correct]}`
-            }
+              : `✗ Not quite. The correct answer is: ${task.options[task.correct]}`}
           </div>
-          <Btn onClick={onContinue} color={C.accent} style={{ width: "100%" }}>
-            Continue to next paragraph →
+          <Btn onClick={onContinue} style={{ width: "100%" }}>
+            Continue →
           </Btn>
         </div>
       )}
@@ -235,17 +231,6 @@ function MCQTask({ task, onContinue }) {
 function TrueFalseTask({ task, onContinue }) {
   const [sel, setSel] = useState(null);
   const [checked, setChecked] = useState(false);
-
-  const handleSelect = (val) => {
-    if (checked) return;
-    setSel(val);
-  };
-
-  const handleCheck = () => {
-    if (sel === null) return;
-    setChecked(true);
-  };
-
   const isCorrect = sel === task.correct;
 
   return (
@@ -261,17 +246,20 @@ function TrueFalseTask({ task, onContinue }) {
             else if (val === sel) { bg = C.error + "20"; border = C.error; color = C.error; }
           } else if (val === sel) { bg = C.accentSoft; border = C.accent; color = C.accent; }
           return (
-            <button key={String(val)} onClick={() => handleSelect(val)} style={{
+            <button key={String(val)} onClick={() => !checked && setSel(val)} style={{
               flex: 1, padding: "14px", background: bg, border: `1.5px solid ${border}`,
               borderRadius: 12, color, fontWeight: 700, fontSize: 15,
-              cursor: checked ? "default" : "pointer", transition: "all 0.2s"
+              cursor: checked ? "default" : "pointer", transition: "all 0.2s",
+              fontFamily: "'Segoe UI', sans-serif"
             }}>{val ? "TRUE" : "FALSE"}</button>
           );
         })}
       </div>
 
       {!checked && (
-        <Btn onClick={handleCheck} disabled={sel === null}>Check my answer →</Btn>
+        <Btn onClick={() => { if (sel !== null) setChecked(true); }} disabled={sel === null}>
+          Check my answer →
+        </Btn>
       )}
 
       {checked && (
@@ -284,11 +272,172 @@ function TrueFalseTask({ task, onContinue }) {
           }}>
             {isCorrect
               ? "✓ Correct! Well done."
-              : `✗ Your answer was wrong. The correct answer is: ${task.correct ? "TRUE" : "FALSE"}`
-            }
+              : `✗ Not quite. The correct answer is: ${task.correct ? "TRUE" : "FALSE"}`}
           </div>
-          <Btn onClick={onContinue} color={C.accent} style={{ width: "100%" }}>
-            Continue to next paragraph →
+          <Btn onClick={onContinue} style={{ width: "100%" }}>
+            Continue →
+          </Btn>
+        </div>
+      )}
+    </div>
+  );
+}
+
+// ─── PARAGRAPH BLOCK — параграф + задание с реальным onContinue ───────────────
+function ParagraphBlock({ para, index, isActive, isDone, onContinue }) {
+  const saveResult = async (studentAnswer, correctAnswer, isCorrect) => {
+    await supabase.from("task_results").insert({
+      lesson_title: lesson.title,
+      paragraph_index: index,
+      question: para.task.question,
+      student_answer: studentAnswer,
+      correct_answer: correctAnswer,
+      is_correct: isCorrect,
+      answered_at: new Date().toISOString()
+    });
+    onContinue(studentAnswer, correctAnswer, isCorrect);
+  };
+
+  const handleMCQContinue = (sel, task) => {
+    const studentAnswer = task.options[sel];
+    const correctAnswer = task.options[task.correct];
+    const isCorrect = sel === task.correct;
+    saveResult(studentAnswer, correctAnswer, isCorrect);
+  };
+
+  const handleTFContinue = (sel, task) => {
+    const studentAnswer = sel ? "TRUE" : "FALSE";
+    const correctAnswer = task.correct ? "TRUE" : "FALSE";
+    const isCorrect = sel === task.correct;
+    saveResult(studentAnswer, correctAnswer, isCorrect);
+  };
+
+  return (
+    <div>
+      <Card>
+        <div style={{ display: "flex", gap: 14, alignItems: "flex-start" }}>
+          <div style={{ fontSize: 40, flexShrink: 0 }}>{para.emoji}</div>
+          <p style={{ fontSize: 15, lineHeight: 1.8, color: C.text, margin: 0 }}>{para.text}</p>
+        </div>
+      </Card>
+
+      {isActive && (
+        <Card style={{ borderColor: C.accent + "60" }}>
+          <div style={{ fontSize: 11, color: C.accent, textTransform: "uppercase", letterSpacing: "0.08em", marginBottom: 16 }}>
+            ✏️ Comprehension Check
+          </div>
+          {para.task.type === "mcq" && (
+            <MCQTaskWithCapture task={para.task} onContinue={handleMCQContinue} />
+          )}
+          {para.task.type === "truefalse" && (
+            <TrueFalseTaskWithCapture task={para.task} onContinue={handleTFContinue} />
+          )}
+        </Card>
+      )}
+
+      {isDone && (
+        <div style={{ color: C.success, fontSize: 12, marginBottom: 16, marginTop: -10 }}>✓ Completed</div>
+      )}
+    </div>
+  );
+}
+
+// ─── MCQ variant that captures selection before calling parent ────────────────
+function MCQTaskWithCapture({ task, onContinue }) {
+  const [sel, setSel] = useState(null);
+  const [checked, setChecked] = useState(false);
+  const isCorrect = sel === task.correct;
+
+  return (
+    <div>
+      <div style={{ fontWeight: 600, color: C.text, marginBottom: 14, fontSize: 15 }}>{task.question}</div>
+      {task.options.map((opt, i) => {
+        let bg = C.surface, border = C.accentBorder, color = C.text;
+        if (checked) {
+          if (i === task.correct) { bg = C.success + "20"; border = C.success; color = C.success; }
+          else if (i === sel) { bg = C.error + "20"; border = C.error; color = C.error; }
+        } else if (i === sel) { bg = C.accentSoft; border = C.accent; color = C.accent; }
+        return (
+          <button key={i} onClick={() => !checked && setSel(i)} style={{
+            display: "block", width: "100%", textAlign: "left", padding: "11px 16px", marginBottom: 8,
+            background: bg, border: `1.5px solid ${border}`, borderRadius: 10, color,
+            cursor: checked ? "default" : "pointer", fontSize: 14, transition: "all 0.2s",
+            fontFamily: "'Segoe UI', sans-serif"
+          }}>
+            {checked && i === task.correct ? "✓ " : ""}
+            {checked && i === sel && i !== task.correct ? "✗ " : ""}
+            {String.fromCharCode(65 + i)}. {opt}
+          </button>
+        );
+      })}
+      {!checked && (
+        <Btn onClick={() => { if (sel !== null) setChecked(true); }} disabled={sel === null}>
+          Check my answer →
+        </Btn>
+      )}
+      {checked && (
+        <div style={{ marginTop: 14 }}>
+          <div style={{
+            padding: "12px 16px", borderRadius: 12, marginBottom: 14,
+            background: isCorrect ? C.success + "15" : C.error + "15",
+            border: `1px solid ${isCorrect ? C.success : C.error}40`,
+            color: isCorrect ? C.success : C.error, fontSize: 14
+          }}>
+            {isCorrect ? "✓ Correct! Well done." : `✗ Not quite. The correct answer is: ${task.options[task.correct]}`}
+          </div>
+          <Btn onClick={() => onContinue(sel, task)} style={{ width: "100%" }}>
+            Continue →
+          </Btn>
+        </div>
+      )}
+    </div>
+  );
+}
+
+function TrueFalseTaskWithCapture({ task, onContinue }) {
+  const [sel, setSel] = useState(null);
+  const [checked, setChecked] = useState(false);
+  const isCorrect = sel === task.correct;
+
+  return (
+    <div>
+      <div style={{ fontWeight: 600, color: C.text, marginBottom: 14, fontSize: 15 }}>
+        True or False: {task.question}
+      </div>
+      <div style={{ display: "flex", gap: 12, marginBottom: 14 }}>
+        {[true, false].map(val => {
+          let bg = C.surface, border = C.accentBorder, color = C.textMuted;
+          if (checked) {
+            if (val === task.correct) { bg = C.success + "20"; border = C.success; color = C.success; }
+            else if (val === sel) { bg = C.error + "20"; border = C.error; color = C.error; }
+          } else if (val === sel) { bg = C.accentSoft; border = C.accent; color = C.accent; }
+          return (
+            <button key={String(val)} onClick={() => !checked && setSel(val)} style={{
+              flex: 1, padding: "14px", background: bg, border: `1.5px solid ${border}`,
+              borderRadius: 12, color, fontWeight: 700, fontSize: 15,
+              cursor: checked ? "default" : "pointer", transition: "all 0.2s",
+              fontFamily: "'Segoe UI', sans-serif"
+            }}>{val ? "TRUE" : "FALSE"}</button>
+          );
+        })}
+      </div>
+      {!checked && (
+        <Btn onClick={() => { if (sel !== null) setChecked(true); }} disabled={sel === null}>
+          Check my answer →
+        </Btn>
+      )}
+      {checked && (
+        <div style={{ marginTop: 4 }}>
+          <div style={{
+            padding: "12px 16px", borderRadius: 12, marginBottom: 14,
+            background: isCorrect ? C.success + "15" : C.error + "15",
+            border: `1px solid ${isCorrect ? C.success : C.error}40`,
+            color: isCorrect ? C.success : C.error, fontSize: 14
+          }}>
+            {isCorrect ? "✓ Correct! Well done." : `✗ Not quite. The correct answer is: ${task.correct ? "TRUE" : "FALSE"}`}
+          </div>
+          <Btn onClick={() => onContinue(sel, task)} style={{ width: "100%" }}>
+            Continue →
           </Btn>
         </div>
       )}
@@ -307,8 +456,6 @@ function StudentPanel({ user, onLogout }) {
   const [attemptId, setAttemptId] = useState(null);
   const [toast, setToast] = useState("");
   const [saving, setSaving] = useState(false);
-  // store student's task answers for admin: { paraIndex: { selected, correct, isCorrect } }
-  const [taskResults, setTaskResults] = useState({});
 
   useEffect(() => {
     if (stage === 2 && !attemptId) {
@@ -322,28 +469,16 @@ function StudentPanel({ user, onLogout }) {
     }
   }, [stage]);
 
-  const showToast = (msg) => { setToast(msg); setTimeout(() => setToast(""), 2500); };
+  const showToast = (msg) => { setToast(msg); setTimeout(() => setToast(""), 2000); };
 
-  const handleParaContinue = async (i, selectedLabel, correctLabel, isCorrect) => {
-    // Save task result to supabase
-    setTaskResults(prev => ({ ...prev, [i]: { selectedLabel, correctLabel, isCorrect } }));
-    await supabase.from("task_results").insert({
-      user_id: user.id,
-      lesson_title: lesson.title,
-      paragraph_index: i,
-      question: lesson.paragraphs[i].task.question,
-      student_answer: selectedLabel,
-      correct_answer: correctLabel,
-      is_correct: isCorrect,
-      answered_at: new Date().toISOString()
-    });
-
+  const handleParaContinue = (paraIdx, studentAnswer, correctAnswer, isCorrect) => {
     showToast(isCorrect ? "🎉 Correct!" : "📖 Keep going!");
-    setTimeout(() => {
-      setParasDone(prev => [...prev, i]);
-      if (i < lesson.paragraphs.length - 1) setParaIndex(i + 1);
-      else setStage(2);
-    }, 400);
+    setParasDone(prev => [...prev, paraIdx]);
+    if (paraIdx < lesson.paragraphs.length - 1) {
+      setParaIndex(paraIdx + 1);
+    } else {
+      setStage(2);
+    }
   };
 
   const submitAnswer = async (i) => {
@@ -363,19 +498,12 @@ function StudentPanel({ user, onLogout }) {
 
   const allSubmitted = lesson.postReading.every((_, i) => postSubmitted[i]);
 
-  // Helper to get label from task
-  const getLabel = (task, index) => {
-    if (task.type === "mcq") return task.options[index];
-    return index ? "TRUE" : "FALSE";
-  };
-
   return (
     <div style={{ minHeight: "100vh", background: C.bg, color: C.text, fontFamily: "'Segoe UI', sans-serif" }}>
       {toast && (
         <div style={{ position: "fixed", top: 20, left: "50%", transform: "translateX(-50%)", background: C.accent, color: "#0f1923", padding: "12px 28px", borderRadius: 50, fontWeight: 800, zIndex: 1000, fontSize: 15, whiteSpace: "nowrap" }}>{toast}</div>
       )}
 
-      {/* Header */}
       <div style={{ background: C.surface, padding: "16px 24px", display: "flex", alignItems: "center", justifyContent: "space-between", borderBottom: `1px solid ${C.accentBorder}` }}>
         <div>
           <div style={{ fontWeight: 800, fontSize: 18 }}>🎓 Hearing Platform</div>
@@ -384,7 +512,6 @@ function StudentPanel({ user, onLogout }) {
         <button onClick={onLogout} style={{ background: "none", border: `1px solid ${C.accentBorder}`, borderRadius: 8, padding: "8px 16px", color: C.textMuted, cursor: "pointer", fontSize: 13 }}>Log out</button>
       </div>
 
-      {/* Stage bar */}
       <div style={{ background: C.surface, padding: "12px 24px", display: "flex", gap: 8, borderBottom: `1px solid ${C.accentBorder}` }}>
         {[["📖", "Pre-Reading", C.stage1], ["🔍", "While Reading", C.accent], ["✍️", "Post-Reading", C.gold]].map(([icon, label, color], i) => (
           <div key={i} style={{ flex: 1, textAlign: "center", padding: "8px", borderRadius: 10, background: stage === i ? color + "20" : "transparent", border: `1px solid ${stage === i ? color : "transparent"}`, fontSize: 13, color: stage === i ? color : stage > i ? C.success : C.textMuted, fontWeight: stage === i ? 700 : 400 }}>
@@ -413,7 +540,7 @@ function StudentPanel({ user, onLogout }) {
             {preStep === 1 && (
               <Card>
                 <h3 style={{ marginBottom: 16, color: C.stage1 }}>🧠 Quick Knowledge Check</h3>
-                <MCQTask
+                <MCQTaskWithCapture
                   task={{ type: "mcq", question: "Which ocean habitat has the most biodiversity?", options: ["Deep ocean trenches", "Coral reefs", "Open ocean surface", "Polar ice regions"], correct: 1 }}
                   onContinue={() => setStage(1)}
                 />
@@ -430,40 +557,23 @@ function StudentPanel({ user, onLogout }) {
               <div style={{ fontSize: 13, color: C.textMuted }}>{parasDone.length}/{lesson.paragraphs.length} completed</div>
             </div>
 
-            {lesson.paragraphs.slice(0, paraIndex + 1).map((para, i) => (
-              <div key={i}>
-                <Card>
-                  <div style={{ display: "flex", gap: 14, alignItems: "flex-start" }}>
-                    <div style={{ fontSize: 40, flexShrink: 0 }}>{para.emoji}</div>
-                    <p style={{ fontSize: 15, lineHeight: 1.8, color: C.text, margin: 0 }}>{para.text}</p>
-                  </div>
-                </Card>
-
-                {i === paraIndex && (
-                  <Card style={{ borderColor: C.accent + "60" }}>
-                    <div style={{ fontSize: 11, color: C.accent, textTransform: "uppercase", letterSpacing: "0.08em", marginBottom: 16 }}>✏️ Comprehension Check</div>
-                    {para.task.type === "mcq" && (
-                      <MCQTask
-                        task={para.task}
-                        onContinue={() => {}}
-                        // We override with a wrapper below
-                      />
-                    )}
-                    {para.task.type === "truefalse" && (
-                      <TrueFalseTask
-                        task={para.task}
-                        onContinue={() => {}}
-                      />
-                    )}
-                    {/* Re-render with real onContinue using key trick */}
-                  </Card>
-                )}
-
-                {parasDone.includes(i) && i < paraIndex && (
-                  <div style={{ color: C.success, fontSize: 12, marginBottom: 16, marginTop: -10 }}>✓ Completed</div>
-                )}
-              </div>
-            ))}
+            {lesson.paragraphs.map((para, i) => {
+              if (i > paraIndex) return null;
+              const isActive = i === paraIndex;
+              const isDone = parasDone.includes(i) && !isActive;
+              return (
+                <ParagraphBlock
+                  key={i}
+                  para={para}
+                  index={i}
+                  isActive={isActive}
+                  isDone={isDone}
+                  onContinue={(studentAnswer, correctAnswer, isCorrect) =>
+                    handleParaContinue(i, studentAnswer, correctAnswer, isCorrect)
+                  }
+                />
+              );
+            })}
           </div>
         )}
 
@@ -525,10 +635,8 @@ function AdminPanel({ user, onLogout }) {
     setSelectedStudent(student);
     setSelectedAttempt(null);
     setResponses([]);
-    setTaskResults([]);
-    const { data } = await supabase.from("attempts").select("*").eq("user_id", student.id).order("started_at", { ascending: false });
-    setAttempts(data || []);
-    // also load task results for this student
+    const { data: att } = await supabase.from("attempts").select("*").eq("user_id", student.id).order("started_at", { ascending: false });
+    setAttempts(att || []);
     const { data: tr } = await supabase.from("task_results").select("*").eq("user_id", student.id).order("answered_at", { ascending: false });
     setTaskResults(tr || []);
     setTab("attempts");
@@ -553,14 +661,13 @@ function AdminPanel({ user, onLogout }) {
         <button onClick={onLogout} style={{ background: "none", border: `1px solid ${C.accentBorder}`, borderRadius: 8, padding: "8px 16px", color: C.textMuted, cursor: "pointer", fontSize: 13 }}>Log out</button>
       </div>
 
-      {/* Breadcrumb */}
       <div style={{ background: C.surface, padding: "0 24px", display: "flex", alignItems: "center", gap: 4, borderBottom: `1px solid ${C.accentBorder}`, flexWrap: "wrap" }}>
         <button onClick={() => { setTab("students"); setSelectedStudent(null); setSelectedAttempt(null); }} style={{ padding: "14px 16px", background: "none", border: "none", borderBottom: `3px solid ${tab === "students" ? C.accent : "transparent"}`, color: tab === "students" ? C.accent : C.textMuted, cursor: "pointer", fontWeight: tab === "students" ? 700 : 400, fontSize: 14 }}>
           👥 All Students ({students.length})
         </button>
         {selectedStudent && <>
           <span style={{ color: C.textMuted, fontSize: 18 }}>›</span>
-          <button onClick={() => { setTab("attempts"); setSelectedAttempt(null); }} style={{ padding: "14px 16px", background: "none", border: "none", borderBottom: `3px solid ${tab === "attempts" || tab === "tasks" ? C.accent : "transparent"}`, color: tab === "attempts" || tab === "tasks" ? C.accent : C.textMuted, cursor: "pointer", fontWeight: 700, fontSize: 14 }}>
+          <button onClick={() => { setTab("attempts"); setSelectedAttempt(null); }} style={{ padding: "14px 16px", background: "none", border: "none", borderBottom: `3px solid ${["attempts","tasks"].includes(tab) ? C.accent : "transparent"}`, color: ["attempts","tasks"].includes(tab) ? C.accent : C.textMuted, cursor: "pointer", fontWeight: 700, fontSize: 14 }}>
             📋 {selectedStudent.full_name}
           </button>
         </>}
@@ -574,7 +681,6 @@ function AdminPanel({ user, onLogout }) {
 
       <div style={{ maxWidth: 900, margin: "0 auto", padding: "28px 20px" }}>
 
-        {/* ALL STUDENTS */}
         {tab === "students" && (
           <div>
             <h3 style={{ marginBottom: 6, color: C.accent }}>All Students</h3>
@@ -599,44 +705,39 @@ function AdminPanel({ user, onLogout }) {
           </div>
         )}
 
-        {/* STUDENT DETAIL: attempts + task results */}
         {tab === "attempts" && selectedStudent && (
           <div>
             <h3 style={{ marginBottom: 20, color: C.accent }}>{selectedStudent.full_name}</h3>
 
-            {/* Task results section */}
-            <div style={{ marginBottom: 32 }}>
-              <h4 style={{ color: C.text, marginBottom: 6, fontSize: 15 }}>📊 While-Reading Task Results</h4>
-              <p style={{ color: C.textMuted, fontSize: 13, marginBottom: 14 }}>All comprehension checks answered by this student</p>
-              {taskResults.length === 0 && <div style={{ color: C.textMuted, fontSize: 13, padding: "12px 0" }}>No task results yet.</div>}
-              {taskResults.map((tr, i) => (
-                <div key={i} style={{ background: C.surface, borderRadius: 14, padding: "14px 18px", marginBottom: 10, border: `1px solid ${tr.is_correct ? C.success + "40" : C.error + "40"}`, display: "flex", gap: 14, alignItems: "flex-start" }}>
-                  <div style={{ width: 32, height: 32, borderRadius: "50%", background: tr.is_correct ? C.success + "20" : C.error + "20", display: "flex", alignItems: "center", justifyContent: "center", fontSize: 16, flexShrink: 0 }}>
-                    {tr.is_correct ? "✓" : "✗"}
-                  </div>
-                  <div style={{ flex: 1 }}>
-                    <div style={{ fontWeight: 600, fontSize: 14, color: C.text, marginBottom: 6 }}>{tr.question}</div>
-                    <div style={{ display: "flex", gap: 16, flexWrap: "wrap" }}>
-                      <div style={{ fontSize: 13 }}>
-                        <span style={{ color: C.textMuted }}>Student answered: </span>
-                        <span style={{ color: tr.is_correct ? C.success : C.error, fontWeight: 600 }}>{tr.student_answer}</span>
-                      </div>
-                      {!tr.is_correct && (
-                        <div style={{ fontSize: 13 }}>
-                          <span style={{ color: C.textMuted }}>Correct answer: </span>
-                          <span style={{ color: C.success, fontWeight: 600 }}>{tr.correct_answer}</span>
-                        </div>
-                      )}
-                    </div>
-                  </div>
-                  <div style={{ fontSize: 11, color: C.textMuted, flexShrink: 0 }}>{fmt(tr.answered_at)}</div>
+            <h4 style={{ color: C.text, marginBottom: 6, fontSize: 15 }}>📊 While-Reading Task Results</h4>
+            <p style={{ color: C.textMuted, fontSize: 13, marginBottom: 14 }}>Every comprehension check this student answered</p>
+            {taskResults.length === 0 && <div style={{ color: C.textMuted, fontSize: 13, marginBottom: 28 }}>No task results yet.</div>}
+            {taskResults.map((tr, i) => (
+              <div key={i} style={{ background: C.surface, borderRadius: 14, padding: "14px 18px", marginBottom: 10, border: `1px solid ${tr.is_correct ? C.success + "40" : C.error + "40"}`, display: "flex", gap: 14, alignItems: "flex-start" }}>
+                <div style={{ width: 32, height: 32, borderRadius: "50%", background: tr.is_correct ? C.success + "20" : C.error + "20", display: "flex", alignItems: "center", justifyContent: "center", fontSize: 16, flexShrink: 0, color: tr.is_correct ? C.success : C.error, fontWeight: 800 }}>
+                  {tr.is_correct ? "✓" : "✗"}
                 </div>
-              ))}
-            </div>
+                <div style={{ flex: 1 }}>
+                  <div style={{ fontWeight: 600, fontSize: 14, color: C.text, marginBottom: 6 }}>{tr.question}</div>
+                  <div style={{ display: "flex", gap: 20, flexWrap: "wrap" }}>
+                    <div style={{ fontSize: 13 }}>
+                      <span style={{ color: C.textMuted }}>Student: </span>
+                      <span style={{ color: tr.is_correct ? C.success : C.error, fontWeight: 600 }}>{tr.student_answer}</span>
+                    </div>
+                    {!tr.is_correct && (
+                      <div style={{ fontSize: 13 }}>
+                        <span style={{ color: C.textMuted }}>Correct: </span>
+                        <span style={{ color: C.success, fontWeight: 600 }}>{tr.correct_answer}</span>
+                      </div>
+                    )}
+                  </div>
+                </div>
+                <div style={{ fontSize: 11, color: C.textMuted, flexShrink: 0 }}>{fmt(tr.answered_at)}</div>
+              </div>
+            ))}
 
-            {/* Post-reading attempts */}
-            <h4 style={{ color: C.text, marginBottom: 6, fontSize: 15 }}>✍️ Post-Reading Attempts</h4>
-            <p style={{ color: C.textMuted, fontSize: 13, marginBottom: 14 }}>Click an attempt to read open-ended answers</p>
+            <h4 style={{ color: C.text, marginBottom: 6, fontSize: 15, marginTop: 16 }}>✍️ Post-Reading Attempts</h4>
+            <p style={{ color: C.textMuted, fontSize: 13, marginBottom: 14 }}>Click to read open-ended answers</p>
             {attempts.length === 0 && <div style={{ color: C.textMuted, fontSize: 13 }}>Student hasn't reached post-reading yet.</div>}
             {attempts.map((a, i) => (
               <Card key={a.id} style={{ cursor: "pointer" }} onClick={() => loadAttemptResponses(a)}>
@@ -656,7 +757,6 @@ function AdminPanel({ user, onLogout }) {
           </div>
         )}
 
-        {/* OPEN-ENDED RESPONSES */}
         {tab === "responses" && selectedAttempt && (
           <div>
             <h3 style={{ marginBottom: 4, color: C.accent }}>{selectedStudent?.full_name} — Open Answers</h3>
