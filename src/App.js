@@ -16,45 +16,116 @@ const C = {
 };
 
 const lesson = {
-  title: "The Ocean Ecosystem",
-  topic: "Marine Biology",
+  title: "A Total Reality Experience",
+  topic: "Virtual Reality",
   vocab: [
-    { word: "Ecosystem", emoji: "🌊", definition: "A community of living things interacting with their environment" },
-    { word: "Coral Reef", emoji: "🪸", definition: "A structure made of coral polyps, home to thousands of sea creatures" },
-    { word: "Predator", emoji: "🦈", definition: "An animal that hunts other animals for food" },
-    { word: "Biodiversity", emoji: "🐠", definition: "The variety of life in a particular habitat or ecosystem" },
-    { word: "Photosynthesis", emoji: "☀️", definition: "How plants use sunlight to make food from water and CO₂" },
+    { word: "Virtual Reality", emoji: "🥽", definition: "A computer-made world you can experience with a headset" },
+    { word: "Interactive", emoji: "🖐️", definition: "Reacting to what you do; not just watching" },
+    { word: "Transform", emoji: "🔄", definition: "To completely change something" },
+    { word: "Affordable", emoji: "💰", definition: "Not too expensive; easy to pay for" },
+    { word: "Explore", emoji: "🔭", definition: "To look around or discover a new place" },
+    { word: "Revolution", emoji: "🌍", definition: "A huge change that affects everything" },
+    { word: "Accommodation", emoji: "🏨", definition: "A place to stay, e.g. a hotel" },
+    { word: "Risk-free", emoji: "🛡️", definition: "Without any danger; no one can get hurt" },
+    { word: "Environment", emoji: "🌿", definition: "The place or conditions around you" },
+    { word: "Advanced", emoji: "🚀", definition: "Very developed; using modern technology" },
   ],
   preCheck: {
     type: "mcq",
-    question: "Which ocean habitat has the most biodiversity?",
-    options: ["Deep ocean trenches", "Coral reefs", "Open ocean surface", "Polar ice regions"],
+    question: "What is Virtual Reality (VR)?",
+    options: [
+      "A type of video game on a normal screen",
+      "A computer-made world experienced with a headset",
+      "A way to make phone calls",
+      "A type of camera used in films"
+    ],
     correct: 1
   },
   paragraphs: [
     {
-      emoji: "🌍",
-      text: "The ocean covers more than 70% of Earth's surface and is home to an astonishing variety of life. From the sunlit surface waters to the darkest trenches miles below, marine ecosystems support millions of species.",
-      task: { type: "mcq", label: "Paragraph 1", question: "How much of Earth's surface does the ocean cover?", options: ["About 50%", "About 60%", "More than 70%", "About 80%"], correct: 2 }
+      emoji: "🥽",
+      text: "Drawing, sculpting, storytelling and even films are some of the different ways that people have tried to recreate reality. But it's only in the past fifty years that technology has advanced enough to allow people to experience other environments using virtual reality (VR) 3D headsets. The next step in VR development will be that users get a complete interactive experience of the environment they are exploring. They will be able to see, touch and hear everything in their VR environment.",
+      task: {
+        type: "truefalse",
+        label: "Paragraph 1",
+        question: "People have been using VR 3D headsets for hundreds of years.",
+        correct: false
+      }
     },
     {
-      emoji: "🪸",
-      text: "Coral reefs are often called the 'rainforests of the sea.' Although they cover less than 1% of the ocean floor, coral reefs are home to approximately 25% of all marine species. These reefs provide shelter, food, and nursery grounds for countless creatures.",
-      task: { type: "truefalse", label: "Paragraph 2", question: "Coral reefs cover more than 50% of the ocean floor.", correct: false }
+      emoji: "🎮",
+      text: "The first use for total experience VR is in the gaming industry. Imagine how gamers could actually play golf on a VR golf course or really drive a Formula 1 racing car! The possibilities are endless. But VR won't just be for fun and games. It will also be a massive leap forward for education. It will transform how people learn different skills and subjects. Learning to drive a car, fly a plane or even perform brain surgery will be absolutely risk-free.",
+      task: {
+        type: "mcq",
+        label: "Paragraph 2",
+        question: "What is the FIRST industry to use total experience VR?",
+        options: ["Healthcare", "The gaming industry", "Education", "Online shopping"],
+        correct: 1
+      }
     },
     {
-      emoji: "🔬",
-      text: "Phytoplankton are microscopic plants floating near the ocean's surface. Using sunlight, water, and carbon dioxide, they perform photosynthesis — producing oxygen and forming the base of the marine food web. Phytoplankton produce about half of all the oxygen on Earth!",
-      task: { type: "mcq", label: "Paragraph 3", question: "What percentage of Earth's oxygen do phytoplankton produce?", options: ["10%", "25%", "About half", "75%"], correct: 2 }
+      emoji: "🏫",
+      text: "Also, students won't need a textbook to learn about life in the Middle Ages as they will be able to visit a medieval village and spend the day living the life of a 14th century peasant or as a nobleman in his castle. Already, there are educational apps which allow students to use VR headsets and go on exciting virtual school trips to museums, coral reefs, rainforests and many more! Imagine seeing space through the eyes of an astronaut — what a lesson that would be! Or going to places like the Amazon Rainforest — without even leaving the classroom.",
+      task: {
+        type: "mcq",
+        label: "Paragraph 3",
+        question: "According to paragraph 3, what can students already do with VR headsets?",
+        options: [
+          "Perform brain surgery",
+          "Drive Formula 1 cars",
+          "Go on virtual school trips to museums and coral reefs",
+          "Build medieval castles"
+        ],
+        correct: 2
+      }
+    },
+    {
+      emoji: "🛍️",
+      text: "Also, it won't be long before we use VR for online shopping. Nowadays, when we buy things online, we can only see photos of products, but with VR devices we will be able to tour virtual shops and even touch the products we are interested in! But that's not all. Have you ever been disappointed by a holiday you booked online? Well, in the future you will be able to take a virtual tour of your accommodation before you make any decisions! There is simply no limit to the ways we will be able to use Virtual Reality.",
+      task: {
+        type: "truefalse",
+        label: "Paragraph 4",
+        question: "Before booking a holiday, VR will let you visit your accommodation first.",
+        correct: true
+      }
+    },
+    {
+      emoji: "🌟",
+      text: "As advanced VR equipment becomes more affordable, it's going to reach more and more people. It looks set to be a digital revolution that will change the way we live, learn, work and play forever! Virtual Reality is going to completely change the way we see our world and we will even be able to control reality for our own benefit. It's an exciting future. Aren't you looking forward to it?",
+      task: {
+        type: "mcq",
+        label: "Paragraph 5",
+        question: "Why will VR reach more people in the future?",
+        options: [
+          "Because governments will give it to everyone",
+          "Because VR equipment will become more affordable",
+          "Because VR is already free",
+          "Because schools will make it compulsory"
+        ],
+        correct: 1
+      }
     },
   ],
   postReading: [
-    { id: "q1", question: "Why are coral reefs compared to rainforests?", hint: "Think about biodiversity and importance to the ecosystem..." },
-    { id: "q2", question: "What would happen if all phytoplankton disappeared from the ocean?", hint: "Think about oxygen and the food web..." },
-    { id: "q3", question: "Name two ways the ocean is important to life on Earth.", hint: "Think about oxygen, food, climate..." },
+    {
+      id: "q1",
+      question: "VR will transform education because…  (complete the sentence using your own ideas)",
+      hint: "Think about what VR allows students to do that a normal classroom cannot..."
+    },
+    {
+      id: "q2",
+      question: "Using VR, students can explore… without… (complete using your own ideas)",
+      hint: "Think about places students could visit virtually — rainforests, space, museums..."
+    },
+    {
+      id: "q3",
+      question: "Do you agree that VR will completely change education in the future? Why or why not? Write 3–5 sentences.",
+      hint: "Use opinion phrases: 'I think / I believe / In my opinion… One reason is… However… To sum up...'"
+    },
   ]
 };
 
+// ─── HELPERS ──────────────────────────────────────────────────────────────────
 function Btn({ children, onClick, color = C.accent, disabled = false, style = {} }) {
   return (
     <button onClick={onClick} disabled={disabled} style={{
@@ -82,6 +153,7 @@ function Card({ children, style = {}, onClick }) {
   );
 }
 
+// ─── AUTH ─────────────────────────────────────────────────────────────────────
 function AuthScreen({ onLogin }) {
   const [mode, setMode] = useState("login");
   const [email, setEmail] = useState("");
@@ -133,24 +205,26 @@ function AuthScreen({ onLogin }) {
   );
 }
 
+// ─── VOCAB CARD ───────────────────────────────────────────────────────────────
 function VocabCard({ item }) {
   const [flipped, setFlipped] = useState(false);
   return (
     <div onClick={() => setFlipped(!flipped)} style={{ cursor: "pointer", height: 130, perspective: 1000 }}>
       <div style={{ position: "relative", width: "100%", height: "100%", transformStyle: "preserve-3d", transform: flipped ? "rotateY(180deg)" : "none", transition: "transform 0.5s ease" }}>
-        <div style={{ position: "absolute", inset: 0, backfaceVisibility: "hidden", background: C.card, borderRadius: 16, border: `1px solid ${C.accentBorder}`, display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center", gap: 8 }}>
-          <div style={{ fontSize: 36 }}>{item.emoji}</div>
-          <div style={{ fontSize: 14, fontWeight: 700, color: C.text }}>{item.word}</div>
+        <div style={{ position: "absolute", inset: 0, backfaceVisibility: "hidden", background: C.card, borderRadius: 16, border: `1px solid ${C.accentBorder}`, display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center", gap: 8, padding: 8 }}>
+          <div style={{ fontSize: 32 }}>{item.emoji}</div>
+          <div style={{ fontSize: 13, fontWeight: 700, color: C.text, textAlign: "center" }}>{item.word}</div>
           <div style={{ fontSize: 11, color: C.textMuted }}>TAP TO SEE</div>
         </div>
         <div style={{ position: "absolute", inset: 0, backfaceVisibility: "hidden", transform: "rotateY(180deg)", background: C.accentSoft, borderRadius: 16, border: `1px solid ${C.accent}50`, display: "flex", alignItems: "center", justifyContent: "center", padding: 12 }}>
-          <div style={{ fontSize: 13, color: C.text, textAlign: "center", lineHeight: 1.5 }}>{item.definition}</div>
+          <div style={{ fontSize: 12, color: C.text, textAlign: "center", lineHeight: 1.5 }}>{item.definition}</div>
         </div>
       </div>
     </div>
   );
 }
 
+// ─── TASK COMPONENTS ──────────────────────────────────────────────────────────
 function MCQTaskWithCapture({ task, onContinue }) {
   const [sel, setSel] = useState(null);
   const [checked, setChecked] = useState(false);
@@ -213,6 +287,7 @@ function TrueFalseTaskWithCapture({ task, onContinue }) {
   );
 }
 
+// ─── STUDENT PANEL ────────────────────────────────────────────────────────────
 function StudentPanel({ user, onLogout }) {
   const [stage, setStage] = useState(0);
   const [preStep, setPreStep] = useState(0);
@@ -274,12 +349,8 @@ function StudentPanel({ user, onLogout }) {
   };
 
   const restartLesson = async () => {
-    setStage(0);
-    setPreStep(0);
-    setParaIndex(0);
-    setParasDone([]);
-    setPostAnswers({});
-    setPostSubmitted({});
+    setStage(0); setPreStep(0); setParaIndex(0);
+    setParasDone([]); setPostAnswers({}); setPostSubmitted({});
     setAttemptId(null);
     const { data } = await supabase.from("attempts").insert({
       user_id: user.id, lesson_title: lesson.title, started_at: new Date().toISOString()
@@ -316,6 +387,7 @@ function StudentPanel({ user, onLogout }) {
           <div>
             <h2 style={{ fontSize: 22, fontWeight: 800, marginBottom: 4 }}>{lesson.title}</h2>
             <p style={{ color: C.textMuted, marginBottom: 28, fontSize: 14 }}>{lesson.topic}</p>
+
             {preStep === 0 && (
               <>
                 <h3 style={{ marginBottom: 8, color: C.stage1 }}>📚 Key Vocabulary</h3>
@@ -326,6 +398,7 @@ function StudentPanel({ user, onLogout }) {
                 <Btn onClick={() => setPreStep(1)} style={{ width: "100%" }}>I know these words →</Btn>
               </>
             )}
+
             {preStep === 1 && (
               <Card>
                 <h3 style={{ marginBottom: 16, color: C.stage1 }}>🧠 Quick Knowledge Check</h3>
@@ -350,13 +423,13 @@ function StudentPanel({ user, onLogout }) {
                 <div key={i}>
                   <Card>
                     <div style={{ display: "flex", gap: 14, alignItems: "flex-start" }}>
-                      <div style={{ fontSize: 40, flexShrink: 0 }}>{para.emoji}</div>
+                      <div style={{ fontSize: 36, flexShrink: 0 }}>{para.emoji}</div>
                       <p style={{ fontSize: 15, lineHeight: 1.8, color: C.text, margin: 0 }}>{para.text}</p>
                     </div>
                   </Card>
                   {isActive && (
                     <Card style={{ borderColor: C.accent + "60" }}>
-                      <div style={{ fontSize: 11, color: C.accent, textTransform: "uppercase", letterSpacing: "0.08em", marginBottom: 16 }}>✏️ Comprehension Check</div>
+                      <div style={{ fontSize: 11, color: C.accent, textTransform: "uppercase", letterSpacing: "0.08em", marginBottom: 16 }}>✏️ Comprehension Check — {para.task.label}</div>
                       {para.task.type === "mcq" && <MCQTaskWithCapture task={para.task} onContinue={(sa, ca, ic) => handleParaContinue(i, sa, ca, ic)} />}
                       {para.task.type === "truefalse" && <TrueFalseTaskWithCapture task={para.task} onContinue={(sa, ca, ic) => handleParaContinue(i, sa, ca, ic)} />}
                     </Card>
@@ -389,7 +462,6 @@ function StudentPanel({ user, onLogout }) {
                 }
               </Card>
             ))}
-
             {allSubmitted && (
               <div style={{ textAlign: "center", padding: 36, background: C.accentSoft, borderRadius: 24, border: `1px solid ${C.accentBorder}` }}>
                 <div style={{ fontSize: 52, marginBottom: 12 }}>🏆</div>
@@ -405,6 +477,7 @@ function StudentPanel({ user, onLogout }) {
   );
 }
 
+// ─── ADMIN PANEL ──────────────────────────────────────────────────────────────
 function AdminPanel({ user, onLogout }) {
   const [students, setStudents] = useState([]);
   const [selected, setSelected] = useState(null);
@@ -418,9 +491,7 @@ function AdminPanel({ user, onLogout }) {
   }, []);
 
   const loadStudent = async (student) => {
-    setSelected(student);
-    setAttempts([]);
-    setLoadingStudent(true);
+    setSelected(student); setAttempts([]); setLoadingStudent(true);
     const { data: atts } = await supabase.from("attempts").select("*").eq("user_id", student.id).order("started_at", { ascending: false });
     if (!atts || atts.length === 0) { setAttempts([]); setLoadingStudent(false); return; }
     const enriched = await Promise.all(atts.map(async (att) => {
@@ -430,17 +501,13 @@ function AdminPanel({ user, onLogout }) {
       ]);
       return { ...att, tasks: tasks || [], responses: responses || [] };
     }));
-    setAttempts(enriched);
-    setLoadingStudent(false);
+    setAttempts(enriched); setLoadingStudent(false);
   };
 
   const fmt = (str) => new Date(str).toLocaleString("en-GB", { day: "2-digit", month: "short", year: "numeric", hour: "2-digit", minute: "2-digit" });
   const stageColor = (s) => s === "pre" ? C.stage1 : C.accent;
   const stageLabel = (s) => s === "pre" ? "Pre-Reading" : "While Reading";
-  const scoreOf = (att) => {
-    if (!att.tasks.length) return null;
-    return `${att.tasks.filter(t => t.is_correct).length}/${att.tasks.length}`;
-  };
+  const scoreOf = (att) => att.tasks.length ? `${att.tasks.filter(t => t.is_correct).length}/${att.tasks.length}` : null;
 
   return (
     <div style={{ minHeight: "100vh", background: C.bg, color: C.text, fontFamily: "'Segoe UI', sans-serif" }}>
@@ -453,7 +520,7 @@ function AdminPanel({ user, onLogout }) {
       </div>
 
       <div style={{ display: "flex", height: "calc(100vh - 65px)" }}>
-        {/* LEFT: student list */}
+        {/* LEFT */}
         <div style={{ width: 260, background: C.surface, borderRight: `1px solid ${C.accentBorder}`, overflowY: "auto", flexShrink: 0 }}>
           <div style={{ padding: "16px 20px", borderBottom: `1px solid ${C.accentBorder}` }}>
             <div style={{ fontWeight: 700, color: C.accent, fontSize: 14 }}>👥 Students ({students.length})</div>
@@ -468,7 +535,7 @@ function AdminPanel({ user, onLogout }) {
           ))}
         </div>
 
-        {/* RIGHT: attempts */}
+        {/* RIGHT */}
         <div style={{ flex: 1, overflowY: "auto", padding: "28px 32px" }}>
           {!selected && (
             <div style={{ textAlign: "center", padding: 60, color: C.textMuted }}>
@@ -476,24 +543,16 @@ function AdminPanel({ user, onLogout }) {
               <div style={{ fontSize: 16 }}>Select a student to see their attempts</div>
             </div>
           )}
-
           {selected && loadingStudent && <div style={{ color: C.textMuted, padding: 20 }}>Loading...</div>}
-
           {selected && !loadingStudent && (
             <div>
               <div style={{ marginBottom: 28 }}>
                 <h2 style={{ fontSize: 22, fontWeight: 800, marginBottom: 4 }}>{selected.full_name}</h2>
                 <div style={{ fontSize: 13, color: C.textMuted }}>{selected.email} · {attempts.length} attempt{attempts.length !== 1 ? "s" : ""}</div>
               </div>
-
-              {attempts.length === 0 && (
-                <div style={{ color: C.textMuted, padding: "20px", background: C.surface, borderRadius: 16, textAlign: "center" }}>This student hasn't started the lesson yet.</div>
-              )}
-
+              {attempts.length === 0 && <div style={{ color: C.textMuted, padding: "20px", background: C.surface, borderRadius: 16, textAlign: "center" }}>This student hasn't started the lesson yet.</div>}
               {attempts.map((att, ai) => (
                 <div key={att.id} style={{ background: C.surface, borderRadius: 20, marginBottom: 28, border: `1px solid ${C.accentBorder}`, overflow: "hidden" }}>
-
-                  {/* Attempt header */}
                   <div style={{ padding: "16px 24px", background: C.card, borderBottom: `1px solid ${C.accentBorder}`, display: "flex", alignItems: "center", gap: 16 }}>
                     <div style={{ width: 40, height: 40, borderRadius: 12, background: C.accentSoft, border: `1.5px solid ${C.accentBorder}`, display: "flex", alignItems: "center", justifyContent: "center", fontSize: 18, flexShrink: 0 }}>📋</div>
                     <div style={{ flex: 1 }}>
@@ -507,18 +566,13 @@ function AdminPanel({ user, onLogout }) {
                       </div>
                     )}
                   </div>
-
                   <div style={{ padding: "20px 24px" }}>
-
-                    {/* Test tasks */}
                     {att.tasks.length > 0 && (
                       <div style={{ marginBottom: 24 }}>
                         <div style={{ fontSize: 12, color: C.textMuted, textTransform: "uppercase", letterSpacing: "0.08em", marginBottom: 14 }}>📊 Test Questions</div>
                         {att.tasks.map((tr, ti) => (
                           <div key={ti} style={{ display: "flex", gap: 14, alignItems: "flex-start", padding: "12px 16px", borderRadius: 12, marginBottom: 10, background: C.card, border: `1px solid ${tr.is_correct ? C.success + "30" : C.error + "30"}` }}>
-                            <div style={{ width: 32, height: 32, borderRadius: "50%", background: tr.is_correct ? C.success + "20" : C.error + "20", display: "flex", alignItems: "center", justifyContent: "center", fontSize: 16, color: tr.is_correct ? C.success : C.error, fontWeight: 800, flexShrink: 0 }}>
-                              {tr.is_correct ? "✓" : "✗"}
-                            </div>
+                            <div style={{ width: 32, height: 32, borderRadius: "50%", background: tr.is_correct ? C.success + "20" : C.error + "20", display: "flex", alignItems: "center", justifyContent: "center", fontSize: 16, color: tr.is_correct ? C.success : C.error, fontWeight: 800, flexShrink: 0 }}>{tr.is_correct ? "✓" : "✗"}</div>
                             <div style={{ flex: 1 }}>
                               <div style={{ display: "flex", gap: 8, alignItems: "center", marginBottom: 4 }}>
                                 <span style={{ fontSize: 10, padding: "2px 8px", borderRadius: 20, background: stageColor(tr.stage) + "25", color: stageColor(tr.stage), fontWeight: 700 }}>{stageLabel(tr.stage)}</span>
@@ -526,28 +580,15 @@ function AdminPanel({ user, onLogout }) {
                               </div>
                               <div style={{ fontWeight: 600, fontSize: 14, color: C.text, marginBottom: 6 }}>{tr.question}</div>
                               <div style={{ display: "flex", gap: 20, flexWrap: "wrap" }}>
-                                <div style={{ fontSize: 13 }}>
-                                  <span style={{ color: C.textMuted }}>Answered: </span>
-                                  <span style={{ fontWeight: 700, color: tr.is_correct ? C.success : C.error }}>{tr.student_answer}</span>
-                                </div>
-                                {!tr.is_correct && (
-                                  <div style={{ fontSize: 13 }}>
-                                    <span style={{ color: C.textMuted }}>Correct: </span>
-                                    <span style={{ fontWeight: 700, color: C.success }}>{tr.correct_answer}</span>
-                                  </div>
-                                )}
+                                <div style={{ fontSize: 13 }}><span style={{ color: C.textMuted }}>Answered: </span><span style={{ fontWeight: 700, color: tr.is_correct ? C.success : C.error }}>{tr.student_answer}</span></div>
+                                {!tr.is_correct && <div style={{ fontSize: 13 }}><span style={{ color: C.textMuted }}>Correct: </span><span style={{ fontWeight: 700, color: C.success }}>{tr.correct_answer}</span></div>}
                               </div>
                             </div>
                           </div>
                         ))}
                       </div>
                     )}
-
-                    {att.tasks.length === 0 && (
-                      <div style={{ fontSize: 13, color: C.textMuted, marginBottom: 20 }}>No test answers recorded yet.</div>
-                    )}
-
-                    {/* Open-ended answers */}
+                    {att.tasks.length === 0 && <div style={{ fontSize: 13, color: C.textMuted, marginBottom: 20 }}>No test answers recorded yet.</div>}
                     {att.responses.length > 0 && (
                       <div>
                         <div style={{ fontSize: 12, color: C.textMuted, textTransform: "uppercase", letterSpacing: "0.08em", marginBottom: 14 }}>✍️ Open-Ended Answers</div>
@@ -559,10 +600,7 @@ function AdminPanel({ user, onLogout }) {
                         ))}
                       </div>
                     )}
-
-                    {att.responses.length === 0 && att.tasks.length > 0 && (
-                      <div style={{ fontSize: 13, color: C.textMuted }}>Student hasn't submitted post-reading answers yet.</div>
-                    )}
+                    {att.responses.length === 0 && att.tasks.length > 0 && <div style={{ fontSize: 13, color: C.textMuted }}>Student hasn't submitted post-reading answers yet.</div>}
                   </div>
                 </div>
               ))}
@@ -574,6 +612,7 @@ function AdminPanel({ user, onLogout }) {
   );
 }
 
+// ─── ROOT ─────────────────────────────────────────────────────────────────────
 export default function App() {
   const [user, setUser] = useState(null);
   const [profile, setProfile] = useState(null);
