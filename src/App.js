@@ -1318,7 +1318,7 @@ function AdminPanel({ user, onLogout }) {
         <div style={{ display: "flex", alignItems: "center", gap: 12 }}>
           <div style={{ width: 40, height: 40, borderRadius: 12, background: `linear-gradient(135deg, ${C.gold}, #f59e0b)`, display: "flex", alignItems: "center", justifyContent: "center", fontSize: 20 }}>⚙️</div>
           <div>
-            <div style={{ fontWeight: 800, fontSize: 16 }}>Admin Panel</div>
+            <div style={{ fontWeight: 800, fontSize: 16 }}>Teacher Panel</div>
             <div style={{ fontSize: 11, color: C.textMuted, marginTop: 1 }}>{user.email}</div>
           </div>
         </div>
